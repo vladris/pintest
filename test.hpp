@@ -2,11 +2,8 @@
 //
 // Copyright (c) 2013  Vlad Riscutia
 
-#include <functional>
-#include <vector>
 #include <map>
 #include <string>
-#include <memory>
 
 // Testable
 class Testable 
