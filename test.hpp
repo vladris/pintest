@@ -27,8 +27,8 @@ public:
     }
 };
 
-// Testable
-class Testable : public Runable
+// Named object
+class Named
 { 
 public:
     // Get the name of the testable
@@ -38,23 +38,32 @@ public:
     }
 
 protected:
-    // Protected constructor
-    Testable(const std::string &name)
+    Named(const std::string &name)
     {
         this->name = name;
     }
 
 private:
-    // Testable name
+    // Name
     std::string name;
 };
 
-// Testable collection
-template <typename T> class TestableCollection : public Testable
+// A test is a named runnable
+class Test : public Runable, public Named
 {
 public:
-    TestableCollection(const std::string &name)
-        : Testable(name)
+    Test(const std::string &name)
+        : Named(name)
+    {
+    }
+};
+
+// Test collection
+template <typename T> class Collection : public Named
+{
+public:
+    Collection(const std::string &name)
+        : Named(name)
     {
         this->setup = &Runable::null_runable();
         this->teardown = &Runable::null_runable();
@@ -101,15 +110,6 @@ public:
         }
     }
 
-    // Run all testables
-    void run() override
-    {
-        for (auto testable : collection)
-        {
-            run_testable(testable.second);
-        }
-    }
-
     // Run a testable from the collection
     void run(const std::string &name)
     {
@@ -130,7 +130,7 @@ private:
 };
 
 // Test executor
-class Executor : public TestableCollection<TestableCollection<Testable>>
+class Executor : public Collection<Collection<Test>>
 {
 public:
     // Get singleton
@@ -140,12 +140,6 @@ public:
 
 		return instance;
 	}
-
-    // Used by runner
-    static __declspec(dllexport) void run_all()
-    {
-        get_instance().run();
-    }
 
     static __declspec(dllexport) const char *get_group(const char *previous)
     {
@@ -159,18 +153,18 @@ public:
 
 private:
 	// No public constructors
-    Executor() : TestableCollection("") { }
-    Executor(Executor const&) : TestableCollection("") { }
+    Executor() : Collection("") { }
+    Executor(Executor const&) : Collection("") { }
 	void operator=(Executor const&);
 };
 
 // A group of tests
-class TestGroup : public TestableCollection<Testable>
+class TestGroup : public Collection<Test>
 {
 public:
     // The group registers itself during construction
     TestGroup(const std::string &name)
-        : TestableCollection(name)
+        : Collection(name)
     {
         Executor::get_instance().register_testable(this);
     }
@@ -197,9 +191,9 @@ public:
                             void Teardown::run()
 
 // Test (automatically instantiates itself and registers itself to test group)
-#define TEST(name)	        struct name : public test::Testable \
+#define TEST(name)	        struct name : public test::Test \
                             { \
-                                name() : Testable(# name) { testGroup.register_testable(this); } \
+                                name() : Test(# name) { testGroup.register_testable(this); } \
                                 void run() override; \
                             } _ ## name; \
                             void name::run()
