@@ -40,5 +40,3 @@ TEST_GROUP(group2)
 		printf("teardown\n");
 	}
 }
-
-// Run everything with Tests::getInstance().run()

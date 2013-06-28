@@ -6,6 +6,6 @@ from ctypes import *
 
 sample = cdll.LoadLibrary("../sample/Debug/sample.dll")
 
-run_all = getattr(sample, "?run_all@Tests@@SAXXZ")
+run_all = getattr(sample, "?run_all@Executor@test@@SAXXZ")
 
 run_all()
