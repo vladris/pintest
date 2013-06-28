@@ -2,30 +2,81 @@
 //
 // Copyright (c) 2013  Vlad Riscutia
 
-#include <stdio.h>
+#include <functional>
 #include <vector>
+#include <map>
+#include <string>
 #include <memory>
 
-// Runable
-struct Runable { virtual void run() = 0; };
+// Testable
+class Testable 
+{ 
+public:
+    Testable(const std::string &name)
+    {
+        this->name = name;
+    }
 
-// Base test class
-struct BaseTest : Runable
+    std::string name;
+
+    virtual void run() = 0; 
+};
+
+// Null test
+class NullTest : public Testable
 {
-	virtual void setup() = 0;
-	virtual void test() = 0;
-	virtual void teardown() = 0;
-
-	void run() override
+public:
+	static NullTest& getInstance()
 	{
-		setup();
-		test();
-		teardown();
+		static NullTest instance;
+
+		return instance;
 	}
+   
+    void run() override { }
+
+private:
+	// No public constructors
+    NullTest() : Testable("") { }
+    NullTest(NullTest const&) : Testable("") { }
+	void operator=(NullTest const&);
+};
+
+// Testable collection
+class TestableCollection : public Testable
+{
+public:
+    TestableCollection(const std::string &name)
+        : Testable(name)
+    {
+        this->setup = &NullTest::getInstance();
+        this->teardown = &NullTest::getInstance();
+    }
+
+    Testable *setup;
+    Testable *teardown;
+
+    void add(Testable *runable)
+    {
+        collection[runable->name] = runable;
+    }
+
+    void run() override
+    {
+        for (auto runable : collection)
+        {
+            setup->run();
+            runable.second->run();
+            teardown->run();
+        }
+    }
+
+private:
+    std::map<std::string, Testable*> collection;
 };
 
 // Test register
-class Tests : Runable
+class Tests : public TestableCollection
 {
 public:
 	// This is a singleton
@@ -36,21 +87,6 @@ public:
 		return instance;
 	}
 
-	// Add a test group
-	void add(Runable *reg)
-	{
-		groups.push_back(reg);
-	}
-
-	// Run all tests
-	void run() override
-	{
-		for (auto group : groups)
-		{
-			group->run();
-		}
-	}
-
     static __declspec(dllexport) void run_all()
     {
         getInstance().run();
@@ -58,59 +94,45 @@ public:
 
 private:
 	// No public constructors
-	Tests() { };
-	Tests(Tests const&) { };
+    Tests() : TestableCollection("") { }
+    Tests(Tests const&) : TestableCollection("") { }
 	void operator=(Tests const&);
-
-	// Test groups
-	std::vector<Runable*> groups;
 };
 
-// Represents a group of tests
-class TestGroup : Runable
+// Test group
+class TestGroup : public TestableCollection
 {
 public:
-	TestGroup()
-	{
-		// Adds itself to the test register
-		Tests::getInstance().add(this);
-	}
-
-	// Add a test
-	void add(BaseTest *test)
-	{
-		tests.push_back(test);
-	}
-
-	// Run all tests in group
-	void run()
-	{
-		for (auto test : tests)
-		{
-			test->run();
-		}
-	}
-private:
-	std::vector<BaseTest*> tests;
+    TestGroup(const std::string &name)
+        : TestableCollection(name)
+    {
+        Tests::getInstance().add(this);
+    }
 };
 
+
 // Test groups are mapped to namespaces
-#define TEST_GROUP(name)		namespace name { static TestGroup testGroup; } namespace name
+#define TEST_GROUP(name)		namespace name { static TestGroup testGroup(#name); } namespace name
 
 // Setup and teardown
-#define TEST_SETUP()	struct Setup { static void run(); }; void Setup::run()
-#define TEST_TEARDOWN() struct Teardown { static void run(); }; void Teardown::run()
+#define TEST_SETUP()	struct Setup : Testable \
+                        { \
+                            Setup() : Testable("setup") { testGroup.setup = this; } \
+                            void run() override; \
+                        } setup; \
+                        void Setup::run()
+
+#define TEST_TEARDOWN() struct Teardown : Testable \
+                        { \
+                            Teardown() : Testable("teardown") { testGroup.teardown = this; } \
+                            void run() override; \
+                        } teardown; \
+                        void Teardown::run()
 
 // Test (automatically instantiates itself and adds itself to test group)
-#define TEST(name)	struct name : public BaseTest \
+#define TEST(name)	struct name : public Testable \
 					{ \
-					    name() { testGroup.add(this); } \
-						void setup() { Setup::run(); } \
-						void teardown() { Teardown::run(); } \
-						void test(); \
+                        name() : Testable(# name) { testGroup.add(this); } \
+						void run() override; \
 					} _ ## name; \
-					void name::test()
-
-// Setup and teardown to be used if the test group doesn't define its own
-struct Setup { static void run() {} };
-struct Teardown { static void run() {} };
+					void name::run()
