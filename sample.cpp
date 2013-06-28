@@ -28,16 +28,16 @@ TEST_GROUP(group1)
 // Defines another test group
 TEST_GROUP(group2)
 {
-	// Fixture teardown
-	TEST_TEARDOWN()
-	{
-		printf("teardown\n");
-	}
-
 	// A test
 	TEST(baz)
 	{
 		printf("tests baz!\n");
+	}
+
+	// Fixture teardown
+	TEST_TEARDOWN()
+	{
+		printf("teardown\n");
 	}
 }
 

@@ -51,6 +51,11 @@ public:
 		}
 	}
 
+    static __declspec(dllexport) void run_all()
+    {
+        getInstance().run();
+    }
+
 private:
 	// No public constructors
 	Tests() { };
