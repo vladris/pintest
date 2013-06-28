@@ -7,6 +7,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 namespace test 
 {
@@ -49,7 +50,7 @@ private:
 };
 
 // Testable collection
-class TestableCollection : public Testable
+template <typename T> class TestableCollection : public Testable
 {
 public:
     TestableCollection(const std::string &name)
@@ -64,9 +65,40 @@ public:
     Runable *teardown;
 
     // Register a testable
-    void register_testable(Testable *testable)
+    void register_testable(T *testable)
     {
+        names.push_back(testable->get_name());
         collection[testable->get_name()] = testable;
+    }
+
+    // Return the name of the following testable
+    const char *get_names(const char *previous)
+    {
+        auto it = names.begin();
+
+        // Return first if no previous
+        if (previous == nullptr)
+        {
+            return it->c_str();
+        }
+
+        // Here we trust caller to pass in a valid previous - TODO: make sure to handle invalid input 
+        while (it->compare(previous) != 0)
+        {
+            it++;
+        }
+
+        it++;
+
+        // Return null if at end of collection, otherwise return the name
+        if (it == names.end())
+        {
+            return nullptr;
+        }
+        else
+        {
+            return it->c_str();
+        }
     }
 
     // Run all testables
@@ -84,10 +116,12 @@ public:
         run_testable(collection[name]);
     }
 
-private:
-    std::map<std::string, Testable*> collection;
+protected:
+    std::vector<std::string> names;
+    std::map<std::string, T*> collection;
 
-    void run_testable(Testable* testable)
+private:
+    void run_testable(T* testable)
     {
         setup->run();
         testable->run();
@@ -96,7 +130,7 @@ private:
 };
 
 // Test executor
-class Executor : public TestableCollection
+class Executor : public TestableCollection<TestableCollection<Testable>>
 {
 public:
     // Get singleton
@@ -113,6 +147,16 @@ public:
         get_instance().run();
     }
 
+    static __declspec(dllexport) const char *get_group(const char *previous)
+    {
+        return get_instance().get_names(previous);
+    }
+
+    static __declspec(dllexport) const char *get_test(const char *group, const char *previous)
+    {
+        return get_instance().collection[group]->get_names(previous);
+    }
+
 private:
 	// No public constructors
     Executor() : TestableCollection("") { }
@@ -121,7 +165,7 @@ private:
 };
 
 // A group of tests
-class TestGroup : public TestableCollection
+class TestGroup : public TestableCollection<Testable>
 {
 public:
     // The group registers itself during construction
