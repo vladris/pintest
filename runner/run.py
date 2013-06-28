@@ -10,6 +10,7 @@ sample = cdll.LoadLibrary('../sample/Debug/sample.dll')
 
 get_group = getattr(sample, '?get_group@Executor@test@@SAPBDPBD@Z')
 get_test = getattr(sample, '?get_test@Executor@test@@SAPBDPBD0@Z')
+run_test = getattr(sample, '?run_test@Executor@test@@SAXPBD0@Z') 
 
 tests = dict()
 
@@ -22,6 +23,8 @@ while group:
         test = get_test(group, test)
     group = get_group(group)
 
-
-print(tests)
+for group in tests:
+    for test in tests[group]:
+        print("running %s/%s" % (group, test))
+        run_test(c_char_p(group), c_char_p(test))
 

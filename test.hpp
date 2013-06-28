@@ -113,7 +113,8 @@ public:
     // Run a testable from the collection
     void run(const std::string &name)
     {
-        run_testable(collection[name]);
+        printf("%s", name.c_str());
+        run_fixture(collection[name]);
     }
 
 protected:
@@ -121,7 +122,7 @@ protected:
     std::map<std::string, T*> collection;
 
 private:
-    void run_testable(T* testable)
+    void run_fixture(T* testable)
     {
         setup->run();
         testable->run();
@@ -149,6 +150,11 @@ public:
     static __declspec(dllexport) const char *get_test(const char *group, const char *previous)
     {
         return get_instance().collection[group]->get_names(previous);
+    }
+
+    static __declspec(dllexport) void run_test(const char *group, const char *test)
+    {
+        get_instance().collection[group]->run(test);
     }
 
 private:
