@@ -1,7 +1,7 @@
 // test.hpp proof of concept
 //
 // Copyright (c) 2013  Vlad Riscutia
-#include "test.hpp"
+#include "../test.hpp"
 
 // Defines a test group
 TEST_GROUP(group1)

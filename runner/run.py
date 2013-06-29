@@ -5,7 +5,7 @@
 from ctypes import *
 import interop
 
-sample = interop.Module('../sample/Debug/sample.dll')
+sample = interop.Module('../test/msvc/Debug/test.dll')
 
 results = {
     0: '.',
