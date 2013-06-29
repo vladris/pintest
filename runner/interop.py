@@ -9,11 +9,6 @@
 '''
 from ctypes import cdll, c_char_p, c_int
 
-# Mangled export names
-GET_GROUP = '?get_group@Interop@test@@CAPBDPBD@Z'
-GET_TEST = '?get_test@Interop@test@@CAPBDPBD0@Z'
-RUN_TEST = '?run_test@Interop@test@@CAHPBD0@Z'
-
 class Module:
     '''
     Wrapper over a native test module
@@ -22,14 +17,14 @@ class Module:
     def __init__(self, filename):
         '''
         Creates a new Module instance. This function raises an error if
-        the module is not a valid test module (doesn't export the expected 
+        the module is not a valid test module (doesn't export the expected
         functions)
         '''
         self.__module = cdll.LoadLibrary(filename)
 
-        self.__get_group = getattr(self.__module, GET_GROUP)
-        self.__get_test = getattr(self.__module, GET_TEST)
-        self.__run_test = getattr(self.__module, RUN_TEST)
+        self.__get_group = self.__module.get_group
+        self.__get_test = self.__module.get_test
+        self.__run_test = self.__module.run_test
 
         self.tests = dict()
 

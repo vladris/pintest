@@ -5,7 +5,10 @@
 from ctypes import *
 import interop
 
-sample = interop.Module('../test/msvc/Debug/test.dll')
+try:
+    sample = interop.Module('../test/msvc/Debug/test.dll')
+except:
+    sample = interop.Module('../test/gcc/libtest.so')
 
 results = {
     0: '.',

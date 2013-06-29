@@ -1,6 +1,6 @@
 TARGET = libtest.so
-CC = gcc
-CFLAGS=-I../../ -g -Wall -std=c++11
+CC = g++
+CFLAGS=-I../../ -fPIC -g -Wall -std=c++11
 
 .PHONY: default all clean
 
@@ -16,7 +16,7 @@ ODIR=obj
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJS)
-	$(CC) $(OBJS) -Wall -shared -o $@
+	$(CC) $(OBJS) -fPIC -Wall -shared -dynamiclib -o $@
 
 clean:
 	-rm -f *.o
