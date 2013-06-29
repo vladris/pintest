@@ -151,6 +151,18 @@ namespace test
             return instance;
         }
 
+        Result run_test(const std::string &group, const std::string &test)
+        {
+            try
+            {
+                return collection[group]->run(test);
+            }
+            catch (std::out_of_range)
+            {
+                return Result::Invalid;
+            }
+        }
+
     private:
         // No public constructors
         Executor() : Collection("") { }
@@ -185,14 +197,7 @@ namespace test
         // Runs the given test from the given group
         static __declspec(dllexport) int run_test(const char *group, const char *test)
         {
-            try
-            {
-                return Executor::get_instance().collection[group]->run(test);
-            }
-            catch (std::out_of_range)
-            {
-                return Result::Invalid;
-            }
+            return Executor::get_instance().run_test(group, test);
         }
     };
 
@@ -250,27 +255,27 @@ namespace test
 // ****************************************************************************
 
 // Test groups are mapped to namespaces
-#define TEST_GROUP(name)    namespace name { static test::internal::TestGroup testGroup(#name); } namespace name
+#define TEST_GROUP(name)    namespace name { static test::internal::TestGroup _testGroup(#name); } namespace name
 
 // Setup and teardown
 #define TEST_SETUP()	    struct Setup : public test::internal::Runable \
                             { \
-                                Setup() { testGroup.setup = this; } \
+                                Setup() { _testGroup.setup = this; } \
                                 void run() override; \
-                            } setup; \
+                            } _setup; \
                             void Setup::run()
 
 #define TEST_TEARDOWN()     struct Teardown : public test::internal::Runable \
                             { \
-                                Teardown() { testGroup.teardown = this; } \
+                                Teardown() { _testGroup.teardown = this; } \
                                 void run() override; \
-                            } teardown; \
+                            } _teardown; \
                             void Teardown::run()
 
 // Test (automatically instantiates itself and registers itself to test group)
 #define TEST(name)	        struct name : public test::internal::Test \
                             { \
-                                name() : Test(# name) { testGroup.register_test(this); } \
+                                name() : Test(# name) { _testGroup.register_test(this); } \
                                 void run() override; \
                             } _ ## name; \
                             void name::run()
