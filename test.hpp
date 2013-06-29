@@ -3,13 +3,14 @@
 // Copyright (c) 2013  Vlad Riscutia, MIT License
 
 #ifndef __TEST_HPP
-#define __TEST_HPP 
+#define __TEST_HPP
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-namespace test 
+namespace test
 {
 
     // ****************************************************************************
@@ -45,7 +46,7 @@ namespace test
 
         // Named object
         class Named
-        { 
+        {
         public:
             // Get the name of the object
             std::string& get_name()
@@ -91,12 +92,12 @@ namespace test
             }
 
             // Run the named item
-            virtual Result run(const std::string &name) 
-            { 
+            virtual Result run(const std::string &name)
+            {
                 return Result::Invalid;
             }
 
-            // Return the name of the item following previous 
+            // Return the name of the item following previous
             const char *get_names(const char *previous)
             {
                 auto it = names.begin();
@@ -171,37 +172,6 @@ namespace test
     };
 
     // ****************************************************************************
-    // Interop exports
-    // ****************************************************************************
-    class Interop
-    {
-        // Gets the test groups
-        static __declspec(dllexport) const char *get_group(const char *previous)
-        {
-            return Executor::get_instance().get_names(previous);
-        }
-
-        // Gets the tests
-        static __declspec(dllexport) const char *get_test(const char *group, const char *previous)
-        {
-            try
-            {
-                return Executor::get_instance().collection.at(group)->get_names(previous);
-            }
-            catch (std::out_of_range)
-            {
-                return nullptr;
-            }
-        }
-
-        // Runs the given test from the given group
-        static __declspec(dllexport) int run_test(const char *group, const char *test)
-        {
-            return Executor::get_instance().run_test(group, test);
-        }
-    };
-
-    // ****************************************************************************
     // Internals
     // ****************************************************************************
     namespace internal
@@ -249,6 +219,37 @@ namespace test
         };
     } // namespace internal
 } // namespace test
+
+#ifdef _WIN32
+    #define WEAK    __declspec(selectany)
+#else
+    #define WEAK    __attribute__((weak))
+#endif // _WIN32
+
+// Gets the test groups
+extern "C" WEAK const char *get_group(const char *previous)
+{
+    return test::Executor::get_instance().get_names(previous);
+}
+
+// Gets the tests
+extern "C" WEAK const char *get_test(const char *group, const char *previous)
+{
+    try
+    {
+        return test::Executor::get_instance().collection.at(group)->get_names(previous);
+    }
+    catch (std::out_of_range)
+    {
+        return nullptr;
+    }
+}
+
+// Runs the given test from the given group
+extern "C" WEAK int run_test(const char *group, const char *test)
+{
+    return test::Executor::get_instance().run_test(group, test);
+}
 
 // ****************************************************************************
 // Macros
