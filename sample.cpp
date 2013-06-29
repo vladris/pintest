@@ -34,6 +34,12 @@ TEST_GROUP(group2)
 		printf("tests baz!\n");
 	}
 
+    // A test that throws an arbitrary exception
+    TEST(throws)
+    {
+        throw 1;
+    }
+
 	// Fixture teardown
 	TEST_TEARDOWN()
 	{

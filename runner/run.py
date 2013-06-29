@@ -6,11 +6,16 @@ from ctypes import *
 
 sample = cdll.LoadLibrary('../sample/Debug/sample.dll')
 
-# run_all = getattr(sample, '?run_all@Executor@test@@SAXXZ')
+results = {
+    0: '.',
+    1: 'F',
+    2: 'E',
+    3: 'I'
+}
 
 get_group = getattr(sample, '?get_group@Interop@test@@CAPBDPBD@Z')
 get_test = getattr(sample, '?get_test@Interop@test@@CAPBDPBD0@Z')
-run_test = getattr(sample, '?run_test@Interop@test@@CAXPBD0@Z') 
+run_test = getattr(sample, '?run_test@Interop@test@@CAHPBD0@Z') 
 
 tests = dict()
 
@@ -26,5 +31,6 @@ while group:
 for group in tests:
     for test in tests[group]:
         print("running %s/%s" % (group, test))
-        run_test(c_char_p(group), c_char_p(test))
+        result = c_int(run_test(c_char_p(group), c_char_p(test))).value
+        print(results[result])
 

@@ -13,6 +13,17 @@ namespace test
 {
 
     // ****************************************************************************
+    // Test results
+    // ****************************************************************************
+    enum Result
+    {
+        Success = 0, // Test succeeded
+        Failed,      // Assertion failed
+        Exception,   // Test threw an exception
+        Invalid      // Invalid test
+    };
+
+    // ****************************************************************************
     // Internals
     // ****************************************************************************
     namespace internal
@@ -21,7 +32,7 @@ namespace test
         class Runable
         {
         public:
-            virtual void run() { };
+            virtual void run() { }
 
             // Get null object
             static Runable& null_runable()
@@ -80,7 +91,10 @@ namespace test
             }
 
             // Run the named item
-            virtual void run(const std::string &name) { }
+            virtual Result run(const std::string &name) 
+            { 
+                return Result::Invalid;
+            }
 
             // Return the name of the item following previous 
             const char *get_names(const char *previous)
@@ -169,15 +183,15 @@ namespace test
         }
 
         // Runs the given test from the given group
-        static __declspec(dllexport) void run_test(const char *group, const char *test)
+        static __declspec(dllexport) int run_test(const char *group, const char *test)
         {
             try
             {
-                Executor::get_instance().collection[group]->run(test);
+                return Executor::get_instance().collection[group]->run(test);
             }
             catch (std::out_of_range)
             {
-                // TODO: when run_test returns a test resul
+                return Result::Invalid;
             }
         }
     };
@@ -206,17 +220,26 @@ namespace test
             Runable *teardown;
 
             // Run a test from the collection
-            void run(const std::string &name) override
+            Result run(const std::string &name) override
             {
-                run_fixture(collection[name]);
+                return run_fixture(collection[name]);
             }
 
         private:
-            void run_fixture(Test* test)
+            Result run_fixture(Test* test)
             {
-                setup->run();
-                test->run();
-                teardown->run();
+                try
+                {
+                    setup->run();
+                    test->run();
+                    teardown->run();
+                }
+                catch (...)
+                {
+                    return Result::Exception;
+                }
+
+                return Result::Success;
             }
         };
     } // namespace internal
