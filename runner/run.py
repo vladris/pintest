@@ -8,9 +8,9 @@ sample = cdll.LoadLibrary('../sample/Debug/sample.dll')
 
 # run_all = getattr(sample, '?run_all@Executor@test@@SAXXZ')
 
-get_group = getattr(sample, '?get_group@Executor@test@@SAPBDPBD@Z')
-get_test = getattr(sample, '?get_test@Executor@test@@SAPBDPBD0@Z')
-run_test = getattr(sample, '?run_test@Executor@test@@SAXPBD0@Z') 
+get_group = getattr(sample, '?get_group@Interop@test@@CAPBDPBD@Z')
+get_test = getattr(sample, '?get_test@Interop@test@@CAPBDPBD0@Z')
+run_test = getattr(sample, '?run_test@Interop@test@@CAXPBD0@Z') 
 
 tests = dict()
 
