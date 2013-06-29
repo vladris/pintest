@@ -1,3 +1,11 @@
+# Python files
+*~
+*.pyc
+*.orig
+*.swp
+*.egg
+*.egg-info/*
+
 # Compiled Object files
 *.slo
 *.lo
