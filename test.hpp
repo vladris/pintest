@@ -31,7 +31,7 @@ public:
 class Named
 { 
 public:
-    // Get the name of the testable
+    // Get the name of the test
     std::string& get_name()
     {
         return name;
@@ -58,29 +58,26 @@ public:
     }
 };
 
-// Test collection
+// Named collection
 template <typename T> class Collection : public Named
 {
 public:
     Collection(const std::string &name)
         : Named(name)
     {
-        this->setup = &Runable::null_runable();
-        this->teardown = &Runable::null_runable();
     }
 
-    // Setup and teardown
-    Runable *setup;
-    Runable *teardown;
-
-    // Register a testable
-    void register_testable(T *testable)
+    // Register an item
+    void register_test(T *test)
     {
-        names.push_back(testable->get_name());
-        collection[testable->get_name()] = testable;
+        names.push_back(test->get_name());
+        collection[test->get_name()] = test;
     }
 
-    // Return the name of the following testable
+    // Run the named item
+    virtual void run(const std::string &name) { }
+
+    // Return the name of the item following previous 
     const char *get_names(const char *previous)
     {
         auto it = names.begin();
@@ -110,24 +107,9 @@ public:
         }
     }
 
-    // Run a testable from the collection
-    void run(const std::string &name)
-    {
-        printf("%s", name.c_str());
-        run_fixture(collection[name]);
-    }
-
 protected:
     std::vector<std::string> names;
     std::map<std::string, T*> collection;
-
-private:
-    void run_fixture(T* testable)
-    {
-        setup->run();
-        testable->run();
-        teardown->run();
-    }
 };
 
 // Test executor
@@ -172,7 +154,28 @@ public:
     TestGroup(const std::string &name)
         : Collection(name)
     {
-        Executor::get_instance().register_testable(this);
+        Executor::get_instance().register_test(this);
+
+        this->setup = &Runable::null_runable();
+        this->teardown = &Runable::null_runable();
+    }
+
+    // Setup and teardown
+    Runable *setup;
+    Runable *teardown;
+
+    // Run a test from the collection
+    void run(const std::string &name) override
+    {
+        run_fixture(collection[name]);
+    }
+
+private:
+    void run_fixture(Test* test)
+    {
+        setup->run();
+        test->run();
+        teardown->run();
     }
 };
 
@@ -199,7 +202,7 @@ public:
 // Test (automatically instantiates itself and registers itself to test group)
 #define TEST(name)	        struct name : public test::Test \
                             { \
-                                name() : Test(# name) { testGroup.register_testable(this); } \
+                                name() : Test(# name) { testGroup.register_test(this); } \
                                 void run() override; \
                             } _ ## name; \
                             void name::run()
