@@ -221,7 +221,7 @@ namespace test
 } // namespace test
 
 #ifdef _WIN32
-    #define WEAK    __declspec(selectany)
+    #define WEAK    inline __declspec(noinline) __declspec(dllexport)
 #else
     #define WEAK    __attribute__((weak))
 #endif // _WIN32
