@@ -283,31 +283,29 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 // An easy way to skip defining these in favor of custom asserts
 #ifndef CUSTOM_TEST_ASSERTS
 
-#define THROW_ASSERT(message)                       throw test::internal::AssertFailedExceptionImpl(message, __FILE__, __LINE__)
+#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { throw test::internal::AssertFailedExceptionImpl("ASSERT_EQUALS: " # actual " doesn't equal " # expected, __FILE__, __LINE__); }
+#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { throw test::internal::AssertFailedExceptionImpl("ASSERT_NOTEQUALS: " # actual " equals " # expected, __FILE__, __LINE__);  }
 
-#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { THROW_ASSERT("ASSERT_EQUALS: " # actual " doesn't equal " # expected); }
-#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { THROW_ASSERT("ASSERT_NOTEQUALS: " # actual " equals " # expected, __FILE__, __LINENO__);  }
+#define ASSERT_ISTRUE(actual)                       if (!(actual)) { throw test::internal::AssertFailedExceptionImpl("ASSERT_ISTRUE: " # actual " is false", __FILE__, __LINE__); }
+#define ASSERT_ISFALSE(actual)                      if (actual) { throw test::internal::AssertFailedExceptionImpl("ASSERT_ISFALSE: " # actual " is true", __FILE__, __LINE__); }
 
-#define ASSERT_ISTRUE(actual)                       if (!(actual)) { THROW_ASSERT("ASSERT_ISTRUE: " # actual " is false", __FILE__, __LINENO__); }
-#define ASSERT_ISFALSE(actual)                      if ((actual) { THROW_ASSERT("ASSERT_ISFALSE: " # actual " is true", __FILE__, __LINENO__); }
-
-#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { THROW_ASSERT("ASSERT_ISNULL: " # actual " is not NULL", __FILE__, __LINENO__); }
-#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { THROW_ASSERT("ASSERT_NOTNULL: " # actual " is NULL", __FILE__, __LINENO__); }
+#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { throw test::internal::AssertFailedExceptionImpl("ASSERT_ISNULL: " # actual " is not NULL", __FILE__, __LINE__); }
+#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { throw test::internal::AssertFailedExceptionImpl("ASSERT_NOTNULL: " # actual " is NULL", __FILE__, __LINE__); }
 
 #define ASSERT_THROWS(exception, code)              try \
                                                     { \
                                                         code; \
-                                                        THROW_ASSERT("ASSERT_THROWS: " # code " doesn't throw an exception", __FILE__, __LINENO__); \
+                                                        throw test::internal::AssertFailedExceptionImpl("ASSERT_THROWS: " # code " doesn't throw an exception", __FILE__, __LINE__); \
                                                     } \
                                                     catch(const exception&) \
                                                     { \
                                                     } \
                                                     catch (...) \
                                                     { \
-                                                        throw test::AssertFailedException("ASSERT_THROWS: " # code " doesn't throw " # exception, __FILE__, __LINENO__); \
+                                                        throw test::AssertFailedException("ASSERT_THROWS: " # code " doesn't throw " # exception, __FILE__, __LINE__); \
                                                     } \
 
-#define ASSERT_FAIL()                               throw test::AssertFailedException("ASSERT_FAIL", __FILE__, __LINENO__);
+#define ASSERT_FAIL()                               throw test::AssertFailedException("ASSERT_FAIL", __FILE__, __LINE__);
 
 #endif // CUSTOM_TEST_ASSERTS
 
