@@ -226,6 +226,10 @@ namespace test
                     test->run();
                     teardown->run();
                 }
+                catch (const AssertFailedException&)
+                {
+                    return Result::Failed;
+                }
                 catch (...)
                 {
                     return Result::Exception;
@@ -276,7 +280,7 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 // An easy way to skip defining these in favor of custom asserts
 #ifndef CUSTOM_TEST_ASSERTS
 
-#define THROW_ASSERT(message)                       throw test::AssertFailedException(message, __FILE__, __LINENO__)
+#define THROW_ASSERT(message)                       throw test::AssertFailedException(message, __FILE__, __LINE__)
 
 #define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { THROW_ASSERT("ASSERT_EQUALS failed: " # actual " doesn't equal " # expected); }
 #define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { THROW_ASSERT("ASSERT_NOTEQUALS failed: " # actual " equals " # expected, __FILE__, __LINENO__);  }
@@ -292,7 +296,7 @@ extern "C" WEAK int run_test(const char *group, const char *test)
                                                         code; \
                                                         THROW_ASSERT("ASSERT_THROWS failed: " # code " doesn't throw an exception", __FILE__, __LINENO__); \
                                                     } \
-                                                    catch(exception) \
+                                                    catch(const exception&) \
                                                     { \
                                                     } \
                                                     catch (...) \
