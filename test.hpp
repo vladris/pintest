@@ -6,6 +6,7 @@
 #ifndef __TEST_HPP
 #define __TEST_HPP
 
+#include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -139,20 +140,11 @@ namespace test
         };
     } // namespace internal
 
+    // ****************************************************************************
+    // AssertFailedException
+    // ****************************************************************************
     class AssertFailedException : public std::exception
     {
-    public:
-        AssertFailedException(const char* message, const char* filename, int lineno)
-        {
-            this->message = message;
-            this->filename = filename;
-            this->lineno = lineno;
-        }
-
-    private:
-        const char* message;
-        const char* filename;
-        int lineno;
     };
 
     // ****************************************************************************
@@ -238,6 +230,17 @@ namespace test
                 return Result::Success;
             }
         };
+
+        // Implementation of AssertFailedException
+        class AssertFailedExceptionImpl : public AssertFailedException
+        {
+        public:
+            AssertFailedExceptionImpl(const char* message, const char* filename, int lineno)
+            {
+                std::cerr << "Assert failed at " << filename << ":" << lineno << std::endl <<
+                    message << std::endl;
+            }
+        };
     } // namespace internal
 } // namespace test
 
@@ -280,28 +283,28 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 // An easy way to skip defining these in favor of custom asserts
 #ifndef CUSTOM_TEST_ASSERTS
 
-#define THROW_ASSERT(message)                       throw test::AssertFailedException(message, __FILE__, __LINE__)
+#define THROW_ASSERT(message)                       throw test::internal::AssertFailedExceptionImpl(message, __FILE__, __LINE__)
 
-#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { THROW_ASSERT("ASSERT_EQUALS failed: " # actual " doesn't equal " # expected); }
-#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { THROW_ASSERT("ASSERT_NOTEQUALS failed: " # actual " equals " # expected, __FILE__, __LINENO__);  }
+#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { THROW_ASSERT("ASSERT_EQUALS: " # actual " doesn't equal " # expected); }
+#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { THROW_ASSERT("ASSERT_NOTEQUALS: " # actual " equals " # expected, __FILE__, __LINENO__);  }
 
-#define ASSERT_ISTRUE(actual)                       if (!(actual)) { THROW_ASSERT("ASSERT_ISTRUE failed: " # actual " is false", __FILE__, __LINENO__); }
-#define ASSERT_ISFALSE(actual)                      if ((actual) { THROW_ASSERT("ASSERT_ISFALSE failed: " # actual " is true", __FILE__, __LINENO__); }
+#define ASSERT_ISTRUE(actual)                       if (!(actual)) { THROW_ASSERT("ASSERT_ISTRUE: " # actual " is false", __FILE__, __LINENO__); }
+#define ASSERT_ISFALSE(actual)                      if ((actual) { THROW_ASSERT("ASSERT_ISFALSE: " # actual " is true", __FILE__, __LINENO__); }
 
-#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { THROW_ASSERT("ASSERT_ISNULL failed: " # actual " is not NULL", __FILE__, __LINENO__); }
-#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { THROW_ASSERT("ASSERT_NOTNULL failed: " # actual " is NULL", __FILE__, __LINENO__); }
+#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { THROW_ASSERT("ASSERT_ISNULL: " # actual " is not NULL", __FILE__, __LINENO__); }
+#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { THROW_ASSERT("ASSERT_NOTNULL: " # actual " is NULL", __FILE__, __LINENO__); }
 
 #define ASSERT_THROWS(exception, code)              try \
                                                     { \
                                                         code; \
-                                                        THROW_ASSERT("ASSERT_THROWS failed: " # code " doesn't throw an exception", __FILE__, __LINENO__); \
+                                                        THROW_ASSERT("ASSERT_THROWS: " # code " doesn't throw an exception", __FILE__, __LINENO__); \
                                                     } \
                                                     catch(const exception&) \
                                                     { \
                                                     } \
                                                     catch (...) \
                                                     { \
-                                                        throw test::AssertFailedException("ASSERT_THROWS failed: " # code " doesn't throw " # exception, __FILE__, __LINENO__); \
+                                                        throw test::AssertFailedException("ASSERT_THROWS: " # code " doesn't throw " # exception, __FILE__, __LINENO__); \
                                                     } \
 
 #define ASSERT_FAIL()                               throw test::AssertFailedException("ASSERT_FAIL", __FILE__, __LINENO__);
