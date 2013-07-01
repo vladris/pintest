@@ -58,11 +58,10 @@ TEST_GROUP(asserts)
     {
         ASSERT_ISNULL(nullptr);
     }
-    
+
     // ASSERT_ISNULL that fails
     TEST(assert_isnull_fail)
     {
-        int x;
-        ASSERT_ISNULL(&x);
+        ASSERT_ISNULL((void *)0xdeadbeef);
     }
 }
