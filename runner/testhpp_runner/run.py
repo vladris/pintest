@@ -15,6 +15,6 @@ for module in modules:
     module.load()
     for group in module.tests:
         for test in module.tests[group]:
-            r, stdo, stde = executor.spawn_exec(module.filename, group + "/" + test)
-            sys.stdout.write(codes.RESULTS[r])
-
+            sys.stdout.write(group + '/' + test + ': ')
+            r, stdo, stde = executor.spawn_exec(module.filename, group + '/' + test)
+            print(codes.RESULTS[r])

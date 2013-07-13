@@ -1,7 +1,9 @@
-// Asserts
+// Exercises asserts
 //
-// Copyright (c) 2013  Vlad Riscutia
+// Copyright (c) 2013 Vlad Riscutia
+// MIT License
 #include "../test.hpp"
+
 
 TEST_GROUP(asserts)
 {

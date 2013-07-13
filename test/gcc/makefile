@@ -8,7 +8,7 @@ default: $(TARGET)
 all: default
 
 H = ../../test.hpp
-OBJS = simple.o simple2.o asserts.o
+OBJS = asserts.o fixtures.o exceptions.o
 
 ODIR=obj
 

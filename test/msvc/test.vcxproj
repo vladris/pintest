@@ -12,8 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\asserts.cpp" />
-    <ClCompile Include="..\simple.cpp" />
-    <ClCompile Include="..\simple2.cpp" />
+    <ClCompile Include="..\fixtures.cpp" />
+    <ClCompile Include="..\exceptions.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C0B3449E-DA43-45DB-9C72-5AC94B289C41}</ProjectGuid>
