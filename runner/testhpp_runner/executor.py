@@ -24,25 +24,22 @@ def spawn_exec(module, test):
 
 
 
-def run_single_test(module, test):
-    '''
-    Runs a single test
-    '''
-    try:
-        m = interop.Module(module)
-    except:
-        return codes.INVALID_MODULE
-    group, test = test.split('/') 
-    return m.run_test(group, test)
-
-
-
 def main(argv=None):
     '''
     Entry point
     '''
     try:
-        return parse(argv)
+        module, test = parse(argv)
+
+        # try loading the module
+        try:
+            module = interop.Module(module)
+        except:
+            return codes.INVALID_MODULE
+        group, test = test.split('/')
+
+        # run the test
+        return module.run_test(group, test)
     except:
         return codes.RUNNER_EXCEPTION
 
@@ -59,4 +56,4 @@ def parse(argv):
         help='group/test to run (eg: -t foo/bar)')
 
     command = parser.parse_args(argv)
-    return run_single_test(command.module, command.test)
+    return command.module, command.test
