@@ -45,7 +45,7 @@ setup(
     entry_points = {
         "console_scripts": [
             "runtest = testhpp_runner.cmdline:main",
-            "runtest-exec = testhpp_runner.exec:main"
+            "runtest-exec = testhpp_runner.executor:main"
         ],
     },
     install_requires = requires,

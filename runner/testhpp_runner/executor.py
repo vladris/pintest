@@ -1,6 +1,6 @@
 '''
-    exec
-    ~~~~
+    executor
+    ~~~~~~~~
 
     Entry point for executing a single test
 
@@ -9,6 +9,17 @@
 '''
 import argparse
 import interop
+from subprocess import Popen, PIPE
+
+
+
+def spawn_exec(module, test):
+    '''
+    Spawn a new process to execute the test
+    '''
+    proc = Popen(['runtest-exec', '-m', module, '-t', test], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = proc.communicate()
+    return proc.returncode, stdout, stderr
 
 
 
@@ -16,7 +27,10 @@ def run_single_test(module, test):
     '''
     Runs a single test
     '''
-    m = interop.Module(module)
+    try:
+        m = interop.Module(module)
+    except:
+        return 10
     group, test = test.split('/') 
     return m.run_test(group, test)
 
