@@ -21,7 +21,7 @@ requires = ["argparse>=1.2"]
 
 
 setup(
-    name = "test.hpp runner",
+    name = "test.hpp_runner",
     version = testhpp_runner.__version__,
     url = "http://vladris.github.io/test.hpp",
     download_url = "http://pypi.python.org/pypi/test.hpp_runner",
