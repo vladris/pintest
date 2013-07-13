@@ -4,6 +4,7 @@
 *.orig
 *.swp
 *.egg
+*.egg-info/
 *.egg-info/*
 
 # Compiled Object files
