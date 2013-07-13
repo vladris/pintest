@@ -26,6 +26,7 @@ class Module:
         self.__get_test = self.__module.get_test
         self.__run_test = self.__module.run_test
 
+        self.filename = filename
         self.tests = dict()
 
 
