@@ -10,6 +10,8 @@ try:
 except:
     sample = interop.Module('../test/gcc/libtest.so')
 
+sample.load()
+
 results = {
     0: '.',
     1: 'F',

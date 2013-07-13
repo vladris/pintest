@@ -28,9 +28,7 @@ class Module:
 
         self.tests = dict()
 
-        self.__load()
-
-    def __load(self):
+    def load(self):
         '''
         Loads the tests from the module into a dictionary
         '''
