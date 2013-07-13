@@ -42,4 +42,7 @@ class Module:
             group = self.__get_group(group)
 
     def run_test(self, group, test):
+        '''
+        Runs the given test from the given group
+        '''
         return c_int(self.__run_test(c_char_p(group), c_char_p(test))).value

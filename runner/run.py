@@ -4,13 +4,9 @@
 
 from ctypes import *
 import interop
+import discovery
 
-try:
-    sample = interop.Module('../test/msvc/Debug/test.dll')
-except:
-    sample = interop.Module('../test/gcc/libtest.so')
-
-sample.load()
+modules = discovery.discover('..')
 
 results = {
     0: '.',
@@ -19,9 +15,11 @@ results = {
     3: 'I'
 }
 
-for group in sample.tests:
-    for test in sample.tests[group]:
-        print("running %s/%s" % (group, test))
-        result = sample.run_test(group, test)
-        print(results[result])
+for module in modules:
+    module.load()
+    for group in module.tests:
+        for test in module.tests[group]:
+            print("running %s/%s" % (group, test))
+            result = module.run_test(group, test)
+            print(results[result])
 
