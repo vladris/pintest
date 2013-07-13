@@ -18,3 +18,13 @@ INVALID = 3             # Invalid test
 # Runner error codes
 RUNNER_EXCEPTION = 10   # Unhandled exception
 INVALID_MODULE = 11     # Module couldn't be loaded
+
+# Character representation for results
+RESULTS = {
+    SUCCESS: '.',
+    FAILED: 'F',
+    EXCEPTION: 'E',
+    INVALID: 'I',
+    RUNNER_EXCEPTION: 'C',
+    INVALID_MODULE: 'M' 
+}
