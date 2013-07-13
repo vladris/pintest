@@ -8,6 +8,7 @@
     :license: MIT License
 '''
 import argparse
+import codes
 import interop
 from subprocess import Popen, PIPE
 
@@ -30,13 +31,24 @@ def run_single_test(module, test):
     try:
         m = interop.Module(module)
     except:
-        return 10
+        return codes.INVALID_MODULE
     group, test = test.split('/') 
     return m.run_test(group, test)
 
 
 
 def main(argv=None):
+    '''
+    Entry point
+    '''
+    try:
+        return parse(argv)
+    except:
+        return codes.RUNNER_EXCEPTION
+
+
+
+def parse(argv):
     '''
     Parses command line
     '''
