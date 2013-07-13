@@ -6,7 +6,7 @@ from ctypes import *
 import interop
 import discovery
 
-modules = discovery.discover('..')
+modules = discovery.discover('../..')
 
 results = {
     0: '.',
