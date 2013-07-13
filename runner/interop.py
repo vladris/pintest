@@ -9,11 +9,11 @@
 '''
 from ctypes import cdll, c_char_p, c_int
 
+
 class Module:
     '''
     Wrapper over a native test module
     '''
-
     def __init__(self, filename):
         '''
         Creates a new Module instance. This function raises an error if
@@ -28,6 +28,7 @@ class Module:
 
         self.tests = dict()
 
+
     def load(self):
         '''
         Loads the tests from the module into a dictionary
@@ -40,6 +41,7 @@ class Module:
                 self.tests[c_char_p(group).value].append(c_char_p(test).value)
                 test = self.__get_test(group, test)
             group = self.__get_group(group)
+
 
     def run_test(self, group, test):
         '''
