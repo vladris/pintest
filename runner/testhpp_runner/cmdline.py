@@ -44,16 +44,6 @@ def list_tests(path, module, test):
 
 
 
-def run_single_test(module, test):
-    '''
-    Runs a single test
-    '''
-    m = interop.Module(module)
-    group, test = test.split('/') 
-    return m.run_test(group, test)
-
-
-
 def main(argv=None):
     '''
     Parses command line and triggers required action
@@ -71,13 +61,3 @@ def main(argv=None):
     if command.list:
         list_tests(command.list, command.module, command.test)
         return 0
-
-    if command.module:
-        if command.test:
-            return run_single_test(command.module, command.test)
-        else:
-            # TODO
-            pass
-    else:
-        # TODO
-        pass

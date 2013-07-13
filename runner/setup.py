@@ -44,7 +44,8 @@ setup(
     include_package_data = True,
     entry_points = {
         "console_scripts": [
-            "runtest = testhpp_runner.cmdline:main"
+            "runtest = testhpp_runner.cmdline:main",
+            "runtest-exec = testhpp_runner.exec:main"
         ],
     },
     install_requires = requires,
