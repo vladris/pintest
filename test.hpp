@@ -165,7 +165,7 @@ namespace test
         {
             try
             {
-                return collection[group]->run(test);
+                return collection.at(group)->run(test);
             }
             catch (std::out_of_range)
             {
@@ -206,7 +206,7 @@ namespace test
             // Run a test from the collection
             Result run(const std::string &name) override
             {
-                return run_fixture(collection[name]);
+                return run_fixture(collection.at(name));
             }
 
         private:
