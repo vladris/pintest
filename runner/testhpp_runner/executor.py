@@ -8,9 +8,8 @@
     :license: MIT License
 '''
 import argparse
-import codes
-import interop
 from subprocess import Popen, PIPE
+from testhpp_runner import codes, interop
 
 
 

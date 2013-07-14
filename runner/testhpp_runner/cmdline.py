@@ -8,9 +8,8 @@
     :license: MIT License
 '''
 import argparse
-import discovery
-import interop
 import re
+from testhpp_runner import discovery, interop
 
 
 

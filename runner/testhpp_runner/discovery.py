@@ -7,9 +7,9 @@
     :copyright: Copyright (c) 2013 Vlad Riscutia
     :license: MIT License
 '''
-import interop
 import os
 import os.path as path
+from testhpp_runner import interop
 
 
 # Module extension to look for based on OS
