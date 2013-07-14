@@ -1,6 +1,6 @@
 TARGET = libtest.so
 CC = g++
-CFLAGS=-I../../ -fPIC -g -Wall -std=c++11
+CFLAGS=-I../../ -fPIC -g -Wall -std=c++0x
 
 .PHONY: default all clean
 
