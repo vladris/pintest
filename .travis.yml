@@ -10,7 +10,7 @@ install:
   "python setup.py develop"
   "popd"
 
-" command to run tests
+# command to run tests
 script:
   "pushd test/gcc"
   "make"
