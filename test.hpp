@@ -204,7 +204,7 @@ namespace test
             Runable *teardown;
 
             // Run a test from the collection
-            Result run(const std::string &name) override
+            Result run(const std::string &name)
             {
                 return run_fixture(collection.at(name));
             }
@@ -320,14 +320,14 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 #define TEST_SETUP()	    struct Setup : public test::internal::Runable \
                             { \
                                 Setup() { _testGroup.setup = this; } \
-                                void run() override; \
+                                void run(); \
                             } _setup; \
                             void Setup::run()
 
 #define TEST_TEARDOWN()     struct Teardown : public test::internal::Runable \
                             { \
                                 Teardown() { _testGroup.teardown = this; } \
-                                void run() override; \
+                                void run(); \
                             } _teardown; \
                             void Teardown::run()
 
@@ -335,7 +335,7 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 #define TEST(name)	        struct name : public test::internal::Test \
                             { \
                                 name() : Test(# name) { _testGroup.register_test(this); } \
-                                void run() override; \
+                                void run(); \
                             } _ ## name; \
                             void name::run()
 
