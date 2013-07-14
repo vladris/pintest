@@ -1,6 +1,8 @@
 test.hpp<sup>α</sup>
 ========
 
+[![Build Status](https://travis-ci.org/vladris/test.hpp.png)](https://travis-ci.org/vladris/test.hpp)
+
 Goals
 -----
 
