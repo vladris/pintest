@@ -5,14 +5,7 @@ python:
   - "3.3"
 
 # command to install dependencies
-install:
-  "pushd runner"
-  "python setup.py develop"
-  "popd"
+install: "pushd runner ; python setup.py develop; popd"
 
 # command to run tests
-script:
-  "pushd test/gcc"
-  "make"
-  "popd"
-  "nosetests"
+script: "pushd test/gcc ; make ; popd ; nosetests"
