@@ -48,4 +48,7 @@ class Module:
         '''
         Runs the given test from the given group
         '''
+        group = group.encode('utf8')
+        test = test.encode('utf8')
+
         return c_int(self.__run_test(c_char_p(group), c_char_p(test))).value
