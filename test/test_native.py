@@ -28,10 +28,22 @@ class NativeTests(TestCase):
         filename = path.basename(module.filename).lower()
         self.assertTrue(filename in ['libtest.so', 'test.dll'])
 
-    def test_asserts(self):
+
+    def __run_group(self, group, tests):
+        '''
+        Runs the given tests and checks results against expected
+        '''
         module = discovery.discover('.')[0]
-        
-        tests = {
+
+        for test in tests:
+            self.assertEqual(tests[test], module.run_test(group, test))
+
+
+    def test_asserts(self):
+        '''
+        Tests native asserts
+        '''
+        self.__run_group('asserts', {
             'assert_equals_pass': codes.SUCCESS,
             'assert_equals_fail': codes.FAILED,
             'assert_notequals_pass': codes.SUCCESS,
@@ -42,7 +54,22 @@ class NativeTests(TestCase):
             'assert_isfalse_fail': codes.FAILED,
             'assert_isnull_pass': codes.SUCCESS,
             'assert_isnull_fail': codes.FAILED,
-        }
+        })
 
-        for test in tests:
-            self.assertEqual(tests[test], module.run_test('asserts', test))
+
+    def test_fixtures(self):
+        '''
+        Tests native fixtures
+        '''
+        self.__run_group('fixtures', {
+            'first': codes.SUCCESS,
+            'second': codes.SUCCESS,
+        })
+
+    def test_exceptions(self):
+        '''
+        Tests native exception handling
+        '''
+        self.__run_group('exceptions', {
+            'throws_int': codes.EXCEPTION,
+        })

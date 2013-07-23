@@ -12,8 +12,6 @@ TEST_GROUP(fixtures)
     // Fixture setup
     TEST_SETUP()
     {
-        // Value should now be 0
-        ASSERT_EQUALS(0, value);
         value = 1;
     }
 
