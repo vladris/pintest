@@ -14,7 +14,7 @@ TEST_GROUP(asserts)
     }
 
     // ASSERT_EQUALS that fails
-    TEST(assert_equals_fails)
+    TEST(assert_equals_fail)
     {
         ASSERT_EQUALS(5, 2 + 2);
     }
@@ -38,7 +38,7 @@ TEST_GROUP(asserts)
     }
 
     // ASSERT_ISTRUE that fails
-    TEST(assert_istue_fail)
+    TEST(assert_istrue_fail)
     {
         ASSERT_ISTRUE(2 + 2 == 5);
     }
