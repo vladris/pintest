@@ -1,7 +1,7 @@
 test.hpp<sup>α</sup>
 ========
 
-[![Build Status](https://travis-ci.org/vladris/test.hpp.png)](https://travis-ci.org/vladris/test.hpp)
+[![Build Status](https://travis-ci.org/vladris/aut.png)](https://travis-ci.org/vladris/aut)
 
 Goals
 -----
