@@ -12,4 +12,4 @@ TEST_GROUP(exceptions)
 	{
         throw -1;
 	}
-}
+};

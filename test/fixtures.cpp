@@ -35,4 +35,4 @@ TEST_GROUP(fixtures)
         // Test should've run before
         ASSERT_EQUALS(2, value);
     }
-}
+};

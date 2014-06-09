@@ -36,10 +36,10 @@ class Module:
         '''
         group = self.__get_group(None)
         while group:
-            self.tests[c_char_p(group).value] = []
+            self.tests[str(c_char_p(group).value, 'utf8')] = []
             test = self.__get_test(group, None)
             while test:
-                self.tests[c_char_p(group).value].append(c_char_p(test).value)
+                self.tests[str(c_char_p(group).value, 'ascii')].append(str(c_char_p(test).value, 'utf8'))
                 test = self.__get_test(group, test)
             group = self.__get_group(group)
 
@@ -52,3 +52,4 @@ class Module:
         test = test.encode('utf8')
 
         return c_int(self.__run_test(c_char_p(group), c_char_p(test))).value
+

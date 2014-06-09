@@ -66,4 +66,4 @@ TEST_GROUP(asserts)
     {
         ASSERT_ISNULL((void *)0xdeadbeef);
     }
-}
+};

@@ -3,14 +3,15 @@
 // Copyright (c) 2013 Vlad Riscutia
 // MIT License
 
-#ifndef __TEST_HPP
-#define __TEST_HPP
+#pragma once
 
+#include <functional>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
-#include <vector>
+#include <typeindex>
 
 namespace test
 {
@@ -27,120 +28,6 @@ namespace test
     };
 
     // ****************************************************************************
-    // Internals
-    // ****************************************************************************
-    namespace internal
-    {
-        // Runable object
-        class Runable
-        {
-        public:
-            virtual void run() { }
-
-            // Get null object
-            static Runable& null_runable()
-            {
-                static Runable instance;
-
-                return instance;
-            }
-        };
-
-        // Named object
-        class Named
-        {
-        public:
-            // Get the name of the object
-            std::string& get_name()
-            {
-                return name;
-            }
-
-        protected:
-            Named(const std::string &name)
-            {
-                this->name = name;
-            }
-
-        private:
-            // Name
-            std::string name;
-        };
-
-        // A test is a named runnable
-        class Test : public Runable, public Named
-        {
-        public:
-            Test(const std::string &name)
-                : Named(name)
-            {
-            }
-        };
-
-        // Named collection
-        template <typename T> class Collection : public Named
-        {
-        public:
-            Collection(const std::string &name)
-                : Named(name)
-            {
-            }
-
-            // Register an item
-            void register_test(T *test)
-            {
-                names.push_back(test->get_name());
-                collection[test->get_name()] = test;
-            }
-
-            // Run the named item
-            virtual Result run(const std::string &name)
-            {
-                return Result::Invalid;
-            }
-
-            // Return the name of the item following previous
-            const char *get_names(const char *previous)
-            {
-                auto it = names.begin();
-
-                // Return first if no previous
-                if (previous == nullptr)
-                {
-                    return it->c_str();
-                }
-
-                while (it->compare(previous) != 0)
-                {
-                    it++;
-
-                    if (it == names.end())
-                    {
-                        return nullptr;
-                    }
-                }
-
-                it++;
-
-                // Return null if at end of collection, otherwise return the name
-                if (it == names.end())
-                {
-                    return nullptr;
-                }
-                else
-                {
-                    return it->c_str();
-                }
-            }
-
-            std::map<std::string, T*> collection;
-
-        protected:
-            std::vector<std::string> names;
-        };
-    } // namespace internal
-
-    // ****************************************************************************
     // AssertFailedException
     // ****************************************************************************
     class AssertFailedException : public std::exception
@@ -150,7 +37,7 @@ namespace test
     // ****************************************************************************
     // Test executor
     // ****************************************************************************
-    class Executor : public internal::Collection<internal::Collection<internal::Test>>
+    class Executor
     {
     public:
         // Get singleton
@@ -161,23 +48,111 @@ namespace test
             return instance;
         }
 
-        Result run_test(const std::string &group, const std::string &test)
+        void add_group(const std::string &name)
         {
-            try
-            {
-                return collection.at(group)->run(test);
-            }
-            catch (std::out_of_range)
-            {
-                return Result::Invalid;
-            }
+			tests[name] = current_tests;
+			current_tests = NamedTest();
         }
+
+        void add_test(const std::string &name, std::function<void()> test)
+        {
+			current_tests[name] = test;
+        }
+        
+		template <typename T> const char *get_with_previous(T &collection, const char* previous)
+		{
+            // If no previous specified, return name of first item in collection
+			if (!previous)
+			{
+				return collection.begin()->first.c_str();
+			}
+
+            // Otherwise find item following previous
+			auto it = collection.find(previous);
+			it++;
+
+			if (it == collection.end())
+			{
+				return nullptr;
+			}
+
+			return it->first.c_str();
+		}
+
+		const char* get_group(const char *previous)
+		{
+			return get_with_previous(tests, previous);
+		}
+
+		const char* get_test(const char *group, const char *previous)
+		{
+			return get_with_previous(tests[group], previous);
+        }
+
+		Result run_test(const std::string &group, const std::string &name)
+		{
+			return run_fixture(group, name);
+		}
 
     private:
         // No public constructors
-        Executor() : Collection("") { }
-        Executor(Executor const&) : Collection("") { }
-        void operator=(Executor const&);
+		Executor() { }
+		Executor(Executor const&) = delete;
+		void operator=(Executor const&) = delete;
+
+		Result run_function(const std::string &group, const std::string &function)
+		{
+            // Find function in fixture
+			auto f = tests[group].find(function);
+
+            // Invalid if not found
+			if (f == tests[group].end())
+			{
+				return Result::Invalid;
+			}
+
+			try
+			{
+                // Execute
+				f->second();
+			}
+			catch (const AssertFailedException&)
+			{
+                // Assertion failure
+				return Result::Failed;
+			}
+			catch (...)
+			{
+                // Unhandled exception
+				return Result::Exception;
+			}
+
+            // Great success
+			return Result::Success;
+		}
+
+		Result run_fixture(const std::string &group, const std::string &test)
+		{
+            // Don't run if exception in test setup
+			if (run_function(group, "setup") == Result::Exception)
+			{
+				return Result::Exception;
+			}
+
+			auto result = run_function(group, test);
+
+            // Result becomes exception if exception in teardown
+			if (run_function(group, "teardown") == Result::Exception)
+			{
+				return Result::Exception;
+			}
+
+			return result;
+		}
+
+		typedef std::map<std::string, std::function<void()>> NamedTest;
+		NamedTest current_tests;
+		std::map<std::string, NamedTest> tests;
     };
 
     // ****************************************************************************
@@ -185,49 +160,28 @@ namespace test
     // ****************************************************************************
     namespace internal
     {
-        // A group of tests
-        class TestGroup : public Collection<Test>
+        // Helper for instantiating and registering a test group
+        template <typename T> struct InstanceHelper
         {
-        public:
-            // The group registers itself during construction
-            TestGroup(const std::string &name)
-                : Collection(name)
-            {
-                Executor::get_instance().register_test(this);
+            std::unique_ptr<T> instance;
 
-                this->setup = &Runable::null_runable();
-                this->teardown = &Runable::null_runable();
+            InstanceHelper(const char *name)
+            {
+                // Instantiate test group
+				instance = std::make_unique<T>();
+
+                // Register name-type pair
+                Executor::get_instance().add_group(name);
             }
+        };
 
-            // Setup and teardown
-            Runable *setup;
-            Runable *teardown;
-
-            // Run a test from the collection
-            Result run(const std::string &name)
+        // Helper for registering a test method
+        struct RegisterTest
+        {
+            RegisterTest(const char *name, std::function<void()> test)
             {
-                return run_fixture(collection.at(name));
-            }
-
-        private:
-            Result run_fixture(Test* test)
-            {
-                try
-                {
-                    setup->run();
-                    test->run();
-                    teardown->run();
-                }
-                catch (const AssertFailedException&)
-                {
-                    return Result::Failed;
-                }
-                catch (...)
-                {
-                    return Result::Exception;
-                }
-
-                return Result::Success;
+                // Register test and associate with group
+                Executor::get_instance().add_test(name, test);
             }
         };
 
@@ -249,31 +203,38 @@ namespace test
     #define WEAK    inline __declspec(noinline) __declspec(dllexport)
 #else
     #define WEAK    __attribute__((weak))
-#endif // _WIN32
+#endif // _MSC_VER
 
 // Gets the test groups
 extern "C" WEAK const char *get_group(const char *previous)
 {
-    return test::Executor::get_instance().get_names(previous);
+	try
+	{
+        return test::Executor::get_instance().get_group(previous);
+	}
+	catch (std::out_of_range&)
+	{
+		return nullptr;
+	}
 }
 
 // Gets the tests
 extern "C" WEAK const char *get_test(const char *group, const char *previous)
 {
-    try
-    {
-        return test::Executor::get_instance().collection.at(group)->get_names(previous);
-    }
-    catch (std::out_of_range)
-    {
-        return nullptr;
-    }
+	try
+	{
+		return test::Executor::get_instance().get_test(group, previous);
+	}
+	catch (std::out_of_range&)
+	{
+		return nullptr;
+	}
 }
 
 // Runs the given test from the given group
 extern "C" WEAK int run_test(const char *group, const char *test)
 {
-    return test::Executor::get_instance().run_test(group, test);
+	return test::Executor::get_instance().run_test(group, test);
 }
 
 // ****************************************************************************
@@ -313,30 +274,18 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 // Test macros
 // ****************************************************************************
 
-// Test groups are mapped to namespaces
-#define TEST_GROUP(name)    namespace name { static test::internal::TestGroup _testGroup(#name); } namespace name
+// Test groups are classes
+#define TEST_GROUP(name)    struct name; \
+                            \
+                            test::internal::InstanceHelper<name> _ ## name ## _ ## instance(# name); \
+                            \
+                            struct name
+
+// Test (automatically registers itself)
+#define TEST(name)	        test::internal::RegisterTest _ ## name { # name, [&]() { this->name(); } }; \
+                            void name()
 
 // Setup and teardown
-#define TEST_SETUP()	    struct Setup : public test::internal::Runable \
-                            { \
-                                Setup() { _testGroup.setup = this; } \
-                                void run(); \
-                            } _setup; \
-                            void Setup::run()
+#define TEST_SETUP()	    TEST(setup)
 
-#define TEST_TEARDOWN()     struct Teardown : public test::internal::Runable \
-                            { \
-                                Teardown() { _testGroup.teardown = this; } \
-                                void run(); \
-                            } _teardown; \
-                            void Teardown::run()
-
-// Test (automatically instantiates itself and registers itself to test group)
-#define TEST(name)	        struct name : public test::internal::Test \
-                            { \
-                                name() : Test(# name) { _testGroup.register_test(this); } \
-                                void run(); \
-                            } _ ## name; \
-                            void name::run()
-
-#endif // __TEST_HPP
+#define TEST_TEARDOWN()     TEST(teardown)
