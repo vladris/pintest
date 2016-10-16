@@ -59,4 +59,6 @@ ipch/
 *.ncb
 *.opensdf
 *.sdf
+*.VC.db
+*.VC.opendb
 
