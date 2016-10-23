@@ -168,13 +168,72 @@ struct register_test_helper
     }
 };
 
-// Implementation of AssertFailedException
-struct assert_failed_exception_impl : public assert_failed_exception
+struct assert
 {
-    assert_failed_exception_impl(const std::string& message, const std::string& filename, const int lineno)
+    template <typename T, typename U>
+    static void equals(T&& expected, U&& actual, const std::string& message = "")
     {
-        std::cerr << "Assert failed at " << filename << ":" << lineno << std::endl <<
-            message << std::endl;
+        if (expected != actual)
+            fail(message);
+    }
+
+    template <typename T, typename U>
+    static void not_equals(T&& expected, U&& actual, const std::string& message = "")
+    {
+        if (expected == actual)
+            fail(message);
+    }
+
+    template <typename T>
+    static void is_true(T&& actual, const std::string& message = "")
+    {
+        if (!actual)
+            fail(message);
+    }
+
+    template <typename T>
+    static void is_false(T&& actual, const std::string& message = "")
+    {
+        if (actual)
+            fail(message);
+    }
+
+    template <typename T>
+    static void is_null(T&& actual, const std::string& message = "")
+    {
+        if (actual != nullptr)
+            fail(message);
+    }
+
+    template <typename T>
+    static void is_not_null(T&& actual, const std::string& message = "")
+    {
+        if (actual == nullptr)
+            fail(message);
+    }
+
+    template <typename T, typename Callable>
+    static void throws(Callable c, const std::string& message = "")
+    {
+        try
+        {
+            c();
+            fail(message);
+        }
+        catch (const T&)
+        {
+        }
+        catch (...)
+        {
+            fail(message);
+        }
+
+        fail(message);
+    }
+
+    static void fail(const std::string& message = "")
+    {
+        throw assert_failed_exception { message };
     }
 };
 
@@ -199,35 +258,7 @@ extern "C" WEAK int run_test(const char *group, const char *name)
 
 }} // namespace test::details
 
-// An easy way to skip defining these in favor of custom asserts
-#ifndef CUSTOM_TEST_ASSERTS
-
-#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { throw test::details::assert_failed_exception_impl("ASSERT_EQUALS: " # actual " doesn't equal " # expected, __FILE__, __LINE__); }
-#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { throw test::details::assert_failed_exception_impl("ASSERT_NOTEQUALS: " # actual " equals " # expected, __FILE__, __LINE__);  }
-
-
-#define ASSERT_ISTRUE(actual)                       if (!(actual)) { throw test::details::assert_failed_exception_impl("ASSERT_ISTRUE: " # actual " is false", __FILE__, __LINE__); }
-#define ASSERT_ISFALSE(actual)                      if (actual) { throw test::details::assert_failed_exception_impl("ASSERT_ISFALSE: " # actual " is true", __FILE__, __LINE__); }
-
-#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { throw test::details::assert_failed_exception_impl("ASSERT_ISNULL: " # actual " is not NULL", __FILE__, __LINE__); }
-#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { throw test::details::assert_failed_exception_impl("ASSERT_NOTNULL: " # actual " is NULL", __FILE__, __LINE__); }
-
-#define ASSERT_THROWS(exception, code)              try \
-                                                    { \
-                                                        code; \
-                                                        throw test::details::assert_failed_exception_impl("ASSERT_THROWS: " # code " doesn't throw an exception", __FILE__, __LINE__); \
-                                                    } \
-                                                    catch(const exception&) \
-                                                    { \
-                                                    } \
-                                                    catch (...) \
-                                                    { \
-                                                        throw test::AssertFailedException("ASSERT_THROWS: " # code " doesn't throw " # exception, __FILE__, __LINE__); \
-                                                    } \
-
-#define ASSERT_FAIL()                               throw test::AssertFailedException("ASSERT_FAIL", __FILE__, __LINE__);
-
-#endif // CUSTOM_TEST_ASSERTS
+using test_assert = test::details::assert;
 
 // Test groups are classes
 #define TEST_GROUP(name)    struct name; \
@@ -241,6 +272,5 @@ extern "C" WEAK int run_test(const char *group, const char *name)
                             void name()
 
 // Setup and teardown
-#define TEST_SETUP()        TEST(__setup)
-
-#define TEST_TEARDOWN()     TEST(__teardown)
+#define SETUP()        TEST(__setup)
+#define TEARDOWN()     TEST(__teardown)
