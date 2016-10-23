@@ -5,198 +5,178 @@
 
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <typeindex>
+#include <vector>
 
-namespace test
+namespace test { namespace details {
+
+struct assert_failed_exception
 {
+    const std::string message;
+};
 
-    // ****************************************************************************
-    // Test results
-    // ****************************************************************************
-    enum Result
+enum class result : uint8_t
+{
+    Success = 0, // Test succeeded
+    Failed,      // Assertion failed
+    Exception,   // Test threw an exception
+    Invalid      // Invalid test
+};
+
+struct test_registry
+{
+    using test_func = std::function<void()>;
+
+    static auto& use()
     {
-        Success = 0, // Test succeeded
-        Failed,      // Assertion failed
-        Exception,   // Test threw an exception
-        Invalid      // Invalid test
+        static test_registry instance;
+
+        return instance;
+    }
+
+    void push_group(const std::string& name)
+    {
+        _group = name;
+    }
+
+    void add_test(const std::string& name, test_func func)
+    {
+        _tests.push_back({ _group, name, func });
+    }
+
+    auto list_tests()
+    {
+        std::string list;
+
+        for (auto&& test : _tests)
+            list += test.group + "::" + test.name + ",";
+
+        return list.erase(list.size() - 1);
+    }
+
+    auto find_test(const std::string& group, const std::string& name)
+    {
+        return std::find_if(_tests.begin(), _tests.end(),
+            [&](auto& test) { return test.group == group && test.name == name; });
+    }
+
+    auto end()
+    {
+        return _tests.end();
+    }
+
+private:
+    struct test
+    {
+        const std::string group;
+        const std::string name;
+        test_func func;
     };
 
-    // ****************************************************************************
-    // AssertFailedException
-    // ****************************************************************************
-    class AssertFailedException : public std::exception
+    std::string _group;
+    std::vector<test> _tests;
+};
+
+struct test_executor
+{
+    static auto& use()
     {
-    };
+        static test_executor instance;
 
-    // ****************************************************************************
-    // Test executor
-    // ****************************************************************************
-    class Executor
+        return instance;
+    }
+
+    auto run_test(const std::string& group, const std::string& name)
     {
-    public:
-        // Get singleton
-        static Executor& get_instance()
-        {
-            static Executor instance;
+        return run_fixture(group, name);
+    }
 
-            return instance;
-        }
-
-        void add_group(const std::string &name)
-        {
-			tests[name] = current_tests;
-			current_tests = NamedTest();
-        }
-
-        void add_test(const std::string &name, std::function<void()> test)
-        {
-			current_tests[name] = test;
-        }
-        
-		template <typename T> const char *get_with_previous(T &collection, const char* previous)
-		{
-            // If no previous specified, return name of first item in collection
-			if (!previous)
-			{
-				return collection.begin()->first.c_str();
-			}
-
-            // Otherwise find item following previous
-			auto it = collection.find(previous);
-			it++;
-
-			if (it == collection.end())
-			{
-				return nullptr;
-			}
-
-			return it->first.c_str();
-		}
-
-		const char* get_group(const char *previous)
-		{
-			return get_with_previous(tests, previous);
-		}
-
-		const char* get_test(const char *group, const char *previous)
-		{
-			return get_with_previous(tests[group], previous);
-        }
-
-		Result run_test(const std::string &group, const std::string &name)
-		{
-			return run_fixture(group, name);
-		}
-
-    private:
-        // No public constructors
-		Executor() { }
-		Executor(Executor const&) = delete;
-		void operator=(Executor const&) = delete;
-
-		Result run_function(const std::string &group, const std::string &function)
-		{
-            // Find function in fixture
-			auto f = tests[group].find(function);
-
-            // Invalid if not found
-			if (f == tests[group].end())
-			{
-				return Result::Invalid;
-			}
-
-			try
-			{
-                // Execute
-				f->second();
-			}
-			catch (const AssertFailedException&)
-			{
-                // Assertion failure
-				return Result::Failed;
-			}
-			catch (...)
-			{
-                // Unhandled exception
-				return Result::Exception;
-			}
-
-            // Great success
-			return Result::Success;
-		}
-
-		Result run_fixture(const std::string &group, const std::string &test)
-		{
-            // Don't run if exception in test setup
-			if (run_function(group, "setup") == Result::Exception)
-			{
-				return Result::Exception;
-			}
-
-			auto result = run_function(group, test);
-
-            // Result becomes exception if exception in teardown
-			if (run_function(group, "teardown") == Result::Exception)
-			{
-				return Result::Exception;
-			}
-
-			return result;
-		}
-
-		typedef std::map<std::string, std::function<void()>> NamedTest;
-		NamedTest current_tests;
-		std::map<std::string, NamedTest> tests;
-    };
-
-    // ****************************************************************************
-    // Internals
-    // ****************************************************************************
-    namespace internal
+private:
+    auto run_function(const std::string& group, const std::string& name)
     {
-        // Helper for instantiating and registering a test group
-        template <typename T> struct InstanceHelper
+        auto registry = test_registry::use();
+
+        // Find function in fixture
+        auto it = registry.find_test(group, name);
+
+        // Invalid if not found
+        if (it == registry.end())
+            return result::Invalid;
+
+        try
         {
-            std::unique_ptr<T> instance;
-
-            InstanceHelper(const char *name)
-            {
-                // Instantiate test group
-				instance = std::make_unique<T>();
-
-                // Register name-type pair
-                Executor::get_instance().add_group(name);
-            }
-        };
-
-        // Helper for registering a test method
-        struct RegisterTest
+            // Execute
+            it->func();
+        }
+        catch (const assert_failed_exception&)
         {
-            RegisterTest(const char *name, std::function<void()> test)
-            {
-                // Register test and associate with group
-                Executor::get_instance().add_test(name, test);
-            }
-        };
-
-        // Implementation of AssertFailedException
-        class AssertFailedExceptionImpl : public AssertFailedException
+            // Assertion failure
+            return result::Failed;
+        }
+        catch (...)
         {
-        public:
-            AssertFailedExceptionImpl(const char* message, const char* filename, int lineno)
-            {
-                std::cerr << "Assert failed at " << filename << ":" << lineno << std::endl <<
-                    message << std::endl;
-            }
-        };
-    } // namespace internal
-} // namespace test
+            // Unhandled exception
+            return result::Exception;
+        }
+
+        // Great success
+        return result::Success;
+    }
+
+    auto run_fixture(const std::string& group, const std::string& test) -> result
+    {
+        // Don't run if exception in test setup
+        if (run_function(group, "__setup") == result::Exception)
+            return result::Exception;
+
+        auto result = run_function(group, test);
+
+        // Result becomes exception if exception in teardown
+        if (run_function(group, "__teardown") == result::Exception)
+            return result::Exception;
+
+        return result;
+    }
+};
+
+// Helper for instantiating and registering a test group
+template <typename T> struct instance_helper
+{
+    std::unique_ptr<T> instance;
+
+    instance_helper(const std::string& name)
+    {
+        // Instantiate test group
+        instance = std::make_unique<T>();
+
+        // Register name-type pair
+        test_registry::use().push_group(name);
+    }
+};
+
+// Helper for registering a test method
+struct register_test_helper
+{
+    register_test_helper(const std::string& name, test_registry::test_func func)
+    {
+        // Register test and associate with group
+        test_registry::use().add_test(name, func);
+    }
+};
+
+// Implementation of AssertFailedException
+struct assert_failed_exception_impl : public assert_failed_exception
+{
+    assert_failed_exception_impl(const std::string& message, const std::string& filename, const int lineno)
+    {
+        std::cerr << "Assert failed at " << filename << ":" << lineno << std::endl <<
+            message << std::endl;
+    }
+};
 
 #ifdef _MSC_VER
     // inline allows implementation in header, __declspec(noinline) prevents actual inlining
@@ -205,58 +185,37 @@ namespace test
     #define WEAK    __attribute__((weak))
 #endif // _MSC_VER
 
-// Gets the test groups
-extern "C" WEAK const char *get_group(const char *previous)
+// List all tests
+extern "C" WEAK const char *list_tests()
 {
-	try
-	{
-        return test::Executor::get_instance().get_group(previous);
-	}
-	catch (std::out_of_range&)
-	{
-		return nullptr;
-	}
-}
-
-// Gets the tests
-extern "C" WEAK const char *get_test(const char *group, const char *previous)
-{
-	try
-	{
-		return test::Executor::get_instance().get_test(group, previous);
-	}
-	catch (std::out_of_range&)
-	{
-		return nullptr;
-	}
+    return test_registry::use().list_tests().c_str();
 }
 
 // Runs the given test from the given group
-extern "C" WEAK int run_test(const char *group, const char *test)
+extern "C" WEAK int run_test(const char *group, const char *name)
 {
-	return test::Executor::get_instance().run_test(group, test);
+    return static_cast<int>(test_executor::use().run_test(group, name));
 }
 
-// ****************************************************************************
-// Assert macros
-// ****************************************************************************
+}} // namespace test::details
 
 // An easy way to skip defining these in favor of custom asserts
 #ifndef CUSTOM_TEST_ASSERTS
 
-#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { throw test::internal::AssertFailedExceptionImpl("ASSERT_EQUALS: " # actual " doesn't equal " # expected, __FILE__, __LINE__); }
-#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { throw test::internal::AssertFailedExceptionImpl("ASSERT_NOTEQUALS: " # actual " equals " # expected, __FILE__, __LINE__);  }
+#define ASSERT_EQUALS(expected, actual)             if ((expected) != (actual)) { throw test::details::assert_failed_exception_impl("ASSERT_EQUALS: " # actual " doesn't equal " # expected, __FILE__, __LINE__); }
+#define ASSERT_NOTEQUALS(expected, actual)          if ((expected) == (actual)) { throw test::details::assert_failed_exception_impl("ASSERT_NOTEQUALS: " # actual " equals " # expected, __FILE__, __LINE__);  }
 
-#define ASSERT_ISTRUE(actual)                       if (!(actual)) { throw test::internal::AssertFailedExceptionImpl("ASSERT_ISTRUE: " # actual " is false", __FILE__, __LINE__); }
-#define ASSERT_ISFALSE(actual)                      if (actual) { throw test::internal::AssertFailedExceptionImpl("ASSERT_ISFALSE: " # actual " is true", __FILE__, __LINE__); }
 
-#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { throw test::internal::AssertFailedExceptionImpl("ASSERT_ISNULL: " # actual " is not NULL", __FILE__, __LINE__); }
-#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { throw test::internal::AssertFailedExceptionImpl("ASSERT_NOTNULL: " # actual " is NULL", __FILE__, __LINE__); }
+#define ASSERT_ISTRUE(actual)                       if (!(actual)) { throw test::details::assert_failed_exception_impl("ASSERT_ISTRUE: " # actual " is false", __FILE__, __LINE__); }
+#define ASSERT_ISFALSE(actual)                      if (actual) { throw test::details::assert_failed_exception_impl("ASSERT_ISFALSE: " # actual " is true", __FILE__, __LINE__); }
+
+#define ASSERT_ISNULL(actual)                       if ((actual) != nullptr) { throw test::details::assert_failed_exception_impl("ASSERT_ISNULL: " # actual " is not NULL", __FILE__, __LINE__); }
+#define ASSERT_NOTNULL(actual)                      if ((actual) == nullptr) { throw test::details::assert_failed_exception_impl("ASSERT_NOTNULL: " # actual " is NULL", __FILE__, __LINE__); }
 
 #define ASSERT_THROWS(exception, code)              try \
                                                     { \
                                                         code; \
-                                                        throw test::internal::AssertFailedExceptionImpl("ASSERT_THROWS: " # code " doesn't throw an exception", __FILE__, __LINE__); \
+                                                        throw test::details::assert_failed_exception_impl("ASSERT_THROWS: " # code " doesn't throw an exception", __FILE__, __LINE__); \
                                                     } \
                                                     catch(const exception&) \
                                                     { \
@@ -270,22 +229,18 @@ extern "C" WEAK int run_test(const char *group, const char *test)
 
 #endif // CUSTOM_TEST_ASSERTS
 
-// ****************************************************************************
-// Test macros
-// ****************************************************************************
-
 // Test groups are classes
 #define TEST_GROUP(name)    struct name; \
                             \
-                            test::internal::InstanceHelper<name> _ ## name ## _ ## instance(# name); \
+                            test::details::instance_helper<name> _ ## name ## _ ## instance(# name); \
                             \
                             struct name
 
 // Test (automatically registers itself)
-#define TEST(name)	        test::internal::RegisterTest _ ## name { # name, [&]() { this->name(); } }; \
+#define TEST(name)          test::details::register_test_helper _ ## name { # name, [&]() { this->name(); } }; \
                             void name()
 
 // Setup and teardown
-#define TEST_SETUP()	    TEST(setup)
+#define TEST_SETUP()        TEST(__setup)
 
-#define TEST_TEARDOWN()     TEST(teardown)
+#define TEST_TEARDOWN()     TEST(__teardown)
