@@ -218,10 +218,10 @@ struct assert
         try
         {
             c();
-            fail(message);
         }
         catch (const T&)
         {
+            return;
         }
         catch (...)
         {
