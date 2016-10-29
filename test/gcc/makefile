@@ -1,13 +1,13 @@
 TARGET = libtest.so
 CC = g++
-CFLAGS=-I../../ -fPIC -g -Wall -std=c++0x
+CFLAGS=-I../../ -fPIC -g -Wall -std=c++1y
 
 .PHONY: default all clean
 
 default: $(TARGET)
 all: default
 
-H = ../../test.hpp
+H = ../../pintest.hpp
 OBJS = asserts.o fixtures.o exceptions.o
 
 ODIR=obj

@@ -9,6 +9,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -31,7 +32,14 @@ struct test_registry
 {
     using test_func = std::function<void()>;
 
-    static auto& use()
+    struct test
+    {
+        const std::string group;
+        const std::string name;
+        test_func func;
+    };
+
+    static auto use() -> test_registry&
     {
         static test_registry instance;
 
@@ -48,55 +56,46 @@ struct test_registry
         _tests.push_back({ _group, name, func });
     }
 
-    auto list_tests()
+    auto list_tests() -> std::string
     {
-        std::string list;
+        auto result = std::accumulate(_tests.begin(), _tests.end(), std::string { },
+            [](std::string& list, const test& t) { return list += t.group + "::" + t.name + ","; });
 
-        for (auto&& test : _tests)
-            list += test.group + "::" + test.name + ",";
-
-        return list.erase(list.size() - 1);
+        return result.size() > 0 ? result.erase(result.size() - 1) : result;
     }
 
-    auto find_test(const std::string& group, const std::string& name)
+    auto find_test(const std::string& group, const std::string& name) -> std::vector<test>::iterator
     {
         return std::find_if(_tests.begin(), _tests.end(),
-            [&](auto& test) { return test.group == group && test.name == name; });
+            [&](const test& t) { return t.group == group && t.name == name; });
     }
 
-    auto end()
+    auto end() -> std::vector<test>::iterator
     {
         return _tests.end();
     }
 
 private:
-    struct test
-    {
-        const std::string group;
-        const std::string name;
-        test_func func;
-    };
-
     std::string _group;
     std::vector<test> _tests;
 };
 
 struct test_executor
 {
-    static auto& use()
+    static auto use() -> test_executor&
     {
         static test_executor instance;
 
         return instance;
     }
 
-    auto run_test(const std::string& group, const std::string& name)
+    auto run_test(const std::string& group, const std::string& name) -> result
     {
         return run_fixture(group, name);
     }
 
 private:
-    auto run_function(const std::string& group, const std::string& name)
+    auto run_function(const std::string& group, const std::string& name) -> result
     {
         auto registry = test_registry::use();
 
@@ -112,13 +111,17 @@ private:
             // Execute
             it->func();
         }
-        catch (const assert_failed_exception&)
+        catch (const assert_failed_exception& e)
         {
+            std::cerr << group << "::" << name << ": " << e.message << std::endl;
+
             // Assertion failure
             return result::Failed;
         }
         catch (...)
         {
+            std::cerr << group << "::" << name << ": unhandled exception" << std::endl;
+
             // Unhandled exception
             return result::Exception;
         }
@@ -133,13 +136,13 @@ private:
         if (run_function(group, "__setup") == result::Exception)
             return result::Exception;
 
-        auto result = run_function(group, test);
+        auto test_result = run_function(group, test);
 
         // Result becomes exception if exception in teardown
         if (run_function(group, "__teardown") == result::Exception)
             return result::Exception;
 
-        return result;
+        return test_result;
     }
 };
 
@@ -151,7 +154,7 @@ template <typename T> struct instance_helper
     instance_helper(const std::string& name)
     {
         // Instantiate test group
-        instance = std::make_unique<T>();
+        instance = std::unique_ptr<T>(new T { });
 
         // Register name-type pair
         test_registry::use().push_group(name);
@@ -192,6 +195,11 @@ extern "C" WEAK int run_test(const char *group, const char *name)
 // Asserts
 namespace assert
 {
+    inline void fail(const std::string& message = "")
+    {
+        throw test::details::assert_failed_exception { message };
+    }
+
     template <typename T, typename U>
     inline void equals(T&& expected, U&& actual, const std::string& message = "")
     {
@@ -251,11 +259,6 @@ namespace assert
         }
 
         fail(message);
-    }
-
-    inline void fail(const std::string& message = "")
-    {
-        throw assert_failed_exception { message };
     }
 } // namespace assert
 } // namespace test
