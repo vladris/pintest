@@ -4,34 +4,34 @@
 
     Package setup script
 
-    :copyright: Copyright (c) 2013 Vlad Riscutia
+    :copyright: Copyright (c) 2016 Vlad Riscutia
     :license: MIT License
 '''
 from setuptools import setup, find_packages
-import testhpp_runner
+import pintest
 
 
 
 long_desc = '''
-Test runner for test.hpp
+Python PinTest test runner
 '''
 
 
-requires = ["argparse>=1.2"]
+requires = ["argparse>=1.1"]
 
 
 setup(
-    name = "test.hpp_runner",
-    version = testhpp_runner.__version__,
-    url = "http://vladris.github.io/test.hpp",
-    download_url = "http://pypi.python.org/pypi/test.hpp_runner",
+    name = "pintest",
+    version = pintest.__version__,
+    url = "<TBA>",
+    download_url = "<TBA>",
     license = "MIT",
     author = "Vlad Riscutia",
     author_email = "vladris@outlook.com",
-    description = "Test runner for test.hpp",
+    description = "PinTest test runner",
     long_description = long_desc,
     classifiers = [
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
@@ -44,8 +44,7 @@ setup(
     include_package_data = True,
     entry_points = {
         "console_scripts": [
-            "runtest = testhpp_runner.cmdline:main",
-            "runtest-exec = testhpp_runner.executor:main"
+            "pintest = pintest.cmdline:main",
         ],
     },
     install_requires = requires,

@@ -64,13 +64,13 @@ TEST_GROUP(asserts)
     // is_null fails
     TEST(assert_is_null_fail)
     {
-        test::assert::is_null((void *)0xdeadbeef);
+        test::assert::is_null((void *)0xdead);
     }
 
     // is_not_null succeeds
     TEST(assert_is_not_null_pass)
     {
-        test::assert::is_not_null((void *)0xdeadbeef);
+        test::assert::is_not_null((void *)0xdead);
     }
 
     // is_not_null fails

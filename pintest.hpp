@@ -56,12 +56,11 @@ struct test_registry
         _tests.push_back({ _group, name, func });
     }
 
-    auto list_tests() -> std::string
+    auto list_tests() -> const std::string&
     {
-        auto result = std::accumulate(_tests.begin(), _tests.end(), std::string { },
-            [](std::string& list, const test& t) { return list += t.group + "::" + t.name + ","; });
+        static auto tests = get_tests();
 
-        return result.size() > 0 ? result.erase(result.size() - 1) : result;
+        return tests;
     }
 
     auto find_test(const std::string& group, const std::string& name) -> std::vector<test>::iterator
@@ -76,6 +75,14 @@ struct test_registry
     }
 
 private:
+    auto get_tests() -> std::string
+    {
+        auto result = std::accumulate(_tests.begin(), _tests.end(), std::string { },
+            [](std::string& list, const test& t) { return list += t.group + "::" + t.name + ","; });
+
+        return result.size() > 0 ? result.erase(result.size() - 1) : result;
+    }
+
     std::string _group;
     std::vector<test> _tests;
 };
@@ -153,11 +160,11 @@ template <typename T> struct instance_helper
 
     instance_helper(const std::string& name)
     {
-        // Instantiate test group
-        instance = std::unique_ptr<T>(new T { });
-
         // Register name-type pair
         test_registry::use().push_group(name);
+
+        // Instantiate test group
+        instance = std::unique_ptr<T>(new T { });
     }
 };
 
