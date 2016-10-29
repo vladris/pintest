@@ -18,14 +18,14 @@ TEST_GROUP(fixtures)
     TEST(first)
     {
         // Setup should've run first
-        test_assert::equals(1, value);
+        test::assert::equals(1, value);
         value = 2;
     }
 
     TEST(second)
     {
         // Setup should've run first
-        test_assert::equals(1, value);
+        test::assert::equals(1, value);
         value = 2;
     }
 
@@ -33,6 +33,6 @@ TEST_GROUP(fixtures)
     TEARDOWN()
     {
         // Test should've run before
-        test_assert::equals(2, value);
+        test::assert::equals(2, value);
     }
 };

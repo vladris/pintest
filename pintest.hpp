@@ -168,75 +168,6 @@ struct register_test_helper
     }
 };
 
-struct assert
-{
-    template <typename T, typename U>
-    static void equals(T&& expected, U&& actual, const std::string& message = "")
-    {
-        if (expected != actual)
-            fail(message);
-    }
-
-    template <typename T, typename U>
-    static void not_equals(T&& expected, U&& actual, const std::string& message = "")
-    {
-        if (expected == actual)
-            fail(message);
-    }
-
-    template <typename T>
-    static void is_true(T&& actual, const std::string& message = "")
-    {
-        if (!actual)
-            fail(message);
-    }
-
-    template <typename T>
-    static void is_false(T&& actual, const std::string& message = "")
-    {
-        if (actual)
-            fail(message);
-    }
-
-    template <typename T>
-    static void is_null(T&& actual, const std::string& message = "")
-    {
-        if (actual != nullptr)
-            fail(message);
-    }
-
-    template <typename T>
-    static void is_not_null(T&& actual, const std::string& message = "")
-    {
-        if (actual == nullptr)
-            fail(message);
-    }
-
-    template <typename T, typename Callable>
-    static void throws(Callable c, const std::string& message = "")
-    {
-        try
-        {
-            c();
-        }
-        catch (const T&)
-        {
-            return;
-        }
-        catch (...)
-        {
-            fail(message);
-        }
-
-        fail(message);
-    }
-
-    static void fail(const std::string& message = "")
-    {
-        throw assert_failed_exception { message };
-    }
-};
-
 #ifdef _MSC_VER
     // inline allows implementation in header, __declspec(noinline) prevents actual inlining
     #define WEAK    inline __declspec(noinline) __declspec(dllexport)
@@ -256,9 +187,78 @@ extern "C" WEAK int run_test(const char *group, const char *name)
     return static_cast<int>(test_executor::use().run_test(group, name));
 }
 
-}} // namespace test::details
+} // namespace details
 
-using test_assert = test::details::assert;
+// Asserts
+namespace assert
+{
+    template <typename T, typename U>
+    inline void equals(T&& expected, U&& actual, const std::string& message = "")
+    {
+        if (expected != actual)
+            fail(message);
+    }
+
+    template <typename T, typename U>
+    inline void not_equals(T&& expected, U&& actual, const std::string& message = "")
+    {
+        if (expected == actual)
+            fail(message);
+    }
+
+    template <typename T>
+    inline void is_true(T&& actual, const std::string& message = "")
+    {
+        if (!actual)
+            fail(message);
+    }
+
+    template <typename T>
+    inline void is_false(T&& actual, const std::string& message = "")
+    {
+        if (actual)
+            fail(message);
+    }
+
+    template <typename T>
+    inline void is_null(T&& actual, const std::string& message = "")
+    {
+        if (actual != nullptr)
+            fail(message);
+    }
+
+    template <typename T>
+    inline void is_not_null(T&& actual, const std::string& message = "")
+    {
+        if (actual == nullptr)
+            fail(message);
+    }
+
+    template <typename T, typename Callable>
+    inline void throws(Callable c, const std::string& message = "")
+    {
+        try
+        {
+            c();
+        }
+        catch (const T&)
+        {
+            return;
+        }
+        catch (...)
+        {
+            fail(message);
+        }
+
+        fail(message);
+    }
+
+    inline void fail(const std::string& message = "")
+    {
+        throw assert_failed_exception { message };
+    }
+} // namespace assert
+} // namespace test
 
 // Test groups are classes
 #define TEST_GROUP(name)    struct name; \
