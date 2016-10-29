@@ -20,51 +20,63 @@ TEST_GROUP(asserts)
     }
 
     // not_equals succeeds
-    TEST(assert_notequals_pass)
+    TEST(assert_not_equals_pass)
     {
         test::assert::not_equals(5, 2 + 2);
     }
 
     // not_equals fails
-    TEST(assert_notequals_fail)
+    TEST(assert_not_equals_fail)
     {
         test::assert::not_equals(4, 2 + 2);
     }
 
     // is_true succeeds
-    TEST(assert_istrue_pass)
+    TEST(assert_is_true_pass)
     {
         test::assert::is_true(2 + 2 == 4);
     }
 
     // is_true fails
-    TEST(assert_istrue_fail)
+    TEST(assert_is_true_fail)
     {
         test::assert::is_true(2 + 2 == 5);
     }
 
     // is_false succeeds
-    TEST(assert_isfalse_pass)
+    TEST(assert_is_false_pass)
     {
         test::assert::is_false(2 + 2 == 5);
     }
 
     // is_false fails
-    TEST(assert_isfalse_fail)
+    TEST(assert_is_false_fail)
     {
         test::assert::is_false(2 + 2 == 4);
     }
 
     // is_null succeeds
-    TEST(assert_isnull_pass)
+    TEST(assert_is_null_pass)
     {
         test::assert::is_null(nullptr);
     }
 
     // is_null fails
-    TEST(assert_isnull_fail)
+    TEST(assert_is_null_fail)
     {
         test::assert::is_null((void *)0xdeadbeef);
+    }
+
+    // is_not_null succeeds
+    TEST(assert_is_not_null_pass)
+    {
+        test::assert::is_not_null((void *)0xdeadbeef);
+    }
+
+    // is_not_null fails
+    TEST(assert_is_not_null_fail)
+    {
+        test::assert::is_not_null(nullptr);
     }
 
     // throws succeeds

@@ -201,42 +201,42 @@ namespace assert
     }
 
     template <typename T, typename U>
-    inline void equals(T&& expected, U&& actual, const std::string& message = "")
+    inline void equals(const T& expected, const U& actual, const std::string& message = "")
     {
         if (expected != actual)
             fail(message);
     }
 
     template <typename T, typename U>
-    inline void not_equals(T&& expected, U&& actual, const std::string& message = "")
+    inline void not_equals(const T& expected, const U& actual, const std::string& message = "")
     {
         if (expected == actual)
             fail(message);
     }
 
     template <typename T>
-    inline void is_true(T&& actual, const std::string& message = "")
+    inline void is_true(const T& actual, const std::string& message = "")
     {
         if (!actual)
             fail(message);
     }
 
     template <typename T>
-    inline void is_false(T&& actual, const std::string& message = "")
+    inline void is_false(const T& actual, const std::string& message = "")
     {
         if (actual)
             fail(message);
     }
 
     template <typename T>
-    inline void is_null(T&& actual, const std::string& message = "")
+    inline void is_null(const T& actual, const std::string& message = "")
     {
         if (actual != nullptr)
             fail(message);
     }
 
     template <typename T>
-    inline void is_not_null(T&& actual, const std::string& message = "")
+    inline void is_not_null(const T& actual, const std::string& message = "")
     {
         if (actual == nullptr)
             fail(message);
@@ -265,9 +265,7 @@ namespace assert
 
 // Test groups are classes
 #define TEST_GROUP(name)    struct name; \
-                            \
                             test::details::instance_helper<name> _ ## name ## _ ## instance(# name); \
-                            \
                             struct name
 
 // Test (automatically registers itself)
