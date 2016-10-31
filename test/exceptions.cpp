@@ -7,9 +7,9 @@
 
 TEST_GROUP(exceptions)
 {
-	// A test that throws an arbitrary exception
-	TEST(throws_int)
-	{
+    // A test that throws an arbitrary exception
+    TEST(throws_int)
+    {
         throw -1;
-	}
+    }
 };
