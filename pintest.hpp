@@ -204,49 +204,49 @@ namespace assert
 {
     inline void fail(const std::string& message = "")
     {
-        throw test::details::assert_failed_exception { message };
+        throw test::details::assert_failed_exception { message.empty() ? "called assert::fail" : message };
     }
 
     template <typename T, typename U>
     inline void equals(const T& expected, const U& actual, const std::string& message = "")
     {
         if (expected != actual)
-            fail(message);
+            fail(message.empty() ? "assert::equals failed" : message);
     }
 
     template <typename T, typename U>
     inline void not_equals(const T& expected, const U& actual, const std::string& message = "")
     {
         if (expected == actual)
-            fail(message);
+            fail(message.empty() ? "assert::not_equals failed" : message);
     }
 
     template <typename T>
     inline void is_true(const T& actual, const std::string& message = "")
     {
         if (!actual)
-            fail(message);
+            fail(message.empty() ? "assert::is_true failed" : message);
     }
 
     template <typename T>
     inline void is_false(const T& actual, const std::string& message = "")
     {
         if (actual)
-            fail(message);
+            fail(message.empty() ? "assert::is_false failed" : message);
     }
 
     template <typename T>
     inline void is_null(const T& actual, const std::string& message = "")
     {
         if (actual != nullptr)
-            fail(message);
+            fail(message.empty() ? "assert::is_null failed" : message);
     }
 
     template <typename T>
     inline void is_not_null(const T& actual, const std::string& message = "")
     {
         if (actual == nullptr)
-            fail(message);
+            fail(message.empty() ? "assert::is_not_null failed" : message);
     }
 
     template <typename T, typename Callable>
@@ -262,10 +262,10 @@ namespace assert
         }
         catch (...)
         {
-            fail(message);
+            fail(message.empty() ? "assert::throws unexpected exception type" : message);
         }
 
-        fail(message);
+        fail(message.empty() ? "assert::throws doesn't throw" : message);
     }
 } // namespace assert
 } // namespace test
