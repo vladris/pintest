@@ -6,6 +6,8 @@
 *.egg
 *.egg-info/
 *.egg-info/*
+build/
+build/*
 
 # Compiled Object files
 *.slo
