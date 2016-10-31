@@ -47,7 +47,7 @@ That's it. The test runner will find the library and run all available tests.
 
 ### Macros and test registration
 
-Unlike most C++ unit test frameworks, Pin Test is not macro-heavy. The only 4 macros #defined are `TEST_GROUP`, `TEST`, `TEST_SETUP` and `TEST_TEARDOWN`. `TEST_GROUP` declares a test class and registers a static instance of it with the framework. `TEST_GROUP(foo)` declares `foo` as `struct foo`. This declaration can be succeeded with inheritance etc., the only requirement being a default constructor. `TEST` declares a method which returns void and doesn't take any arguments, and registers it with the framework. `TEST_SETUP` and `TEST_TEARDOWN` register the special methods `void __setup()` and `void __teardown()` with the framework - these are called before and after each test in the group.     
+Unlike most C++ unit test frameworks, Pin Test is not macro-heavy. The only 4 macros #defined are `TEST_GROUP`, `TEST`, `TEST_SETUP` and `TEST_TEARDOWN`. `TEST_GROUP` declares a test class and registers a static instance of it with the framework. `TEST_GROUP(foo)` declares `foo` as `struct foo`. This declaration can be succeeded by declaring inheritance etc., the only constraint on the `foo` type being a default constructor. `TEST` declares a method which returns void and doesn't take any arguments, and registers it with the framework. `TEST_SETUP` and `TEST_TEARDOWN` register the special methods `void __setup()` and `void __teardown()` with the framework - these are called before and after each test in the group.     
 
 ### Asserts
 
