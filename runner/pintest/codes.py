@@ -26,5 +26,5 @@ RESULTS = {
     EXCEPTION: 'E',
     INVALID: 'I',
     RUNNER_EXCEPTION: 'C',
-    INVALID_MODULE: 'M' 
+    INVALID_MODULE: 'M'
 }

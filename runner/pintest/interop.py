@@ -30,13 +30,11 @@ class Module:
         self.filename = filename
         self.tests = []
 
-
     def load(self):
         '''
         Loads the tests from the module into a dictionary
         '''
         self.tests = self.__list_tests().decode('ascii').split(',')
-
 
     def run_test(self, group, test):
         '''
