@@ -41,7 +41,7 @@ setup(
     platforms='any',
     packages=find_packages(),
     data_files=[
-        ('inc', ['../pintest.hpp'])
+        ('inc', ['pintest.hpp'])
     ],
     include_package_data=True,
     entry_points={
