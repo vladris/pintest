@@ -22,8 +22,8 @@ requires = ['argparse>=1.1']
 setup(
     name='pintest',
     version=pintest.__version__,
-    url='<TBA>',
-    download_url='<TBA>',
+    url='https://github.com/vladris/pintest',
+    download_url='http://pypi.python.org/pypi/pintest',
     license='MIT',
     author='Vlad Riscutia',
     author_email='vladris@outlook.com',
