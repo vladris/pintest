@@ -10,18 +10,6 @@
 import argparse
 import pintest
 from pintest import codes, discovery, executor, interop
-import os
-from shutil import copyfile
-
-
-def init(path):
-    '''
-    Copy pintest.hpp from package to specified directory
-    '''
-    package_path = os.path.dirname(pintest.__file__)
-    HEADER_FILE = 'pintest.hpp'
-    header_path = os.path.join(package_path, '..', 'inc', HEADER_FILE)
-    copyfile(header_path, os.path.join(path, HEADER_FILE))
 
 
 def list_tests(path, module):
@@ -66,9 +54,6 @@ def main(argv=None):
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument(
-        '-i', '--init', nargs='?', const='.',
-        help='copy pintest.hpp to directory (default is current directory)')
-    group.add_argument(
         '-r', '--run', nargs='?', const='.',
         help='run test or tests (default is current directory)')
     group.add_argument(
@@ -84,10 +69,7 @@ def main(argv=None):
 
     command = parser.parse_args(argv)
 
-    if command.init:
-        init(command.init)
-        return 0
-    elif command.list:
+    if command.list:
         list_tests(command.list, command.module)
         return 0
     elif command.run:

@@ -8,6 +8,8 @@
 *.egg-info/*
 build/
 build/*
+dist/
+dist/*
 
 # Compiled Object files
 *.slo
