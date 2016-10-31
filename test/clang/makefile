@@ -16,7 +16,7 @@ ODIR=obj
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJS)
-	$(CC) $(OBJS) -fPIC -Wall -shared -o $@
+	$(CC) $(OBJS) -shared -fPIC -Wall -stdlib=libc++ -o $@
 
 clean:
 	-rm -f *.o
