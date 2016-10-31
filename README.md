@@ -31,7 +31,7 @@ TEST_GROUP(example_tests)
 };
 ```
     
-Build all unit tests as a shared library (.DLL on Windows, .so on Linux using).
+Build all unit tests as a shared library (.DLL on Windows, .so on Linux).
 
 Get the test runner using pip:
 
