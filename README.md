@@ -2,7 +2,7 @@
 
 *The lightest unit test framework to poke holes in your C++ logic*
 
-Pin Test is a featherweight unit testing framework for C++. It is easy to integrate with both existing native code and existing automation. On the native side, Pin Test is implemented as a single header, `pintest.hpp`. The framework comes with a Python3 test runner which supports automatic discovery. Other runners can be easily implemented, as the native interface consists of just 2 functions.
+Pin Test is a featherweight unit testing framework for C++. It is easy to integrate with both existing native code and existing automation. On the native side, Pin Test is implemented as a single header, `pintest.hpp`. The framework comes with a Python3 test runner which supports automatic test discovery. Other runners can be easily implemented, as the native interface consists of just 2 `extern "C"` functions.
 
 Requires Python3, tested with Clang 3.5, GCC 4.8, MSVC 14.0
 
